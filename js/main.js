@@ -264,6 +264,11 @@ class SebastianLabs {
             this.setupUI();
             this.initializeChatArea();
             
+            // MOBILE SCROLL FIX - Setup after everything loaded
+            setTimeout(() => {
+                this.setupMobileScrolling();
+            }, 100);
+            
             this.hideLoading();
             this.isInitialized = true;
             this.showToast('🚀 SebastianLabs is ready!', 'success');
@@ -272,6 +277,167 @@ class SebastianLabs {
             console.error('Initialization error:', error);
             this.hideLoading();
             this.showToast('❌ Failed to initialize: ' + error.message, 'error');
+        }
+    }
+
+
+    // MOBILE SCROLL FIX - Enhanced setup
+    setupMobileScrolling() {
+        if (!this.isMobile) return;
+
+        console.log('🔧 Setting up mobile scrolling...');
+
+        // Fix body scroll
+        document.body.style.overflow = 'hidden';
+        document.body.style.position = 'fixed';
+        document.body.style.width = '100%';
+        document.body.style.height = '100%';
+
+        // Get chat elements
+        const chatArea = document.querySelector('.chat-area');
+        const chatContainer = document.querySelector('.chat-container');
+        const chatMessages = document.getElementById('chatMessages');
+
+        if (chatContainer) {
+            // Force proper scrolling setup
+            chatContainer.style.overflowY = 'auto';
+            chatContainer.style.overflowX = 'hidden';
+            chatContainer.style.webkitOverflowScrolling = 'touch';
+            chatContainer.style.transform = 'translateZ(0)';
+            chatContainer.style.willChange = 'scroll-position';
+            chatContainer.style.touchAction = 'pan-y';
+            chatContainer.style.overscrollBehavior = 'contain';
+            
+            // Set proper height
+            const headerHeight = 56; // mobile header height
+            const footerHeight = 50; // mobile footer height  
+            const navHeight = 50; // mobile nav height
+            const inputHeight = 120; // approximate input height
+            
+            const availableHeight = window.innerHeight - headerHeight - footerHeight - navHeight - inputHeight;
+            chatContainer.style.height = `${availableHeight}px`;
+            
+            console.log(`📏 Chat container height set to: ${availableHeight}px`);
+        }
+
+        if (chatMessages) {
+            chatMessages.style.minHeight = 'min-content';
+            chatMessages.style.paddingBottom = '20px';
+        }
+
+        // Add mobile scroll event handlers
+        this.addMobileScrollEvents(chatContainer);
+        
+        // Force scroll to bottom after setup
+        setTimeout(() => {
+            if (chatContainer) {
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+            }
+        }, 100);
+
+        console.log('✅ Mobile scrolling setup complete');
+    }
+
+    // Enhanced mobile scroll events
+    addMobileScrollEvents(chatContainer) {
+        if (!chatContainer) return;
+
+        let isScrolling = false;
+        let scrollTimeout;
+
+        // Prevent scroll lock issues
+        chatContainer.addEventListener('touchstart', (e) => {
+            isScrolling = true;
+            clearTimeout(scrollTimeout);
+        }, { passive: true });
+
+        chatContainer.addEventListener('touchend', (e) => {
+            scrollTimeout = setTimeout(() => {
+                isScrolling = false;
+            }, 150);
+        }, { passive: true });
+
+        // Handle momentum scrolling
+        chatContainer.addEventListener('scroll', () => {
+            // Maintain webkit scrolling
+            if (chatContainer.style.webkitOverflowScrolling !== 'touch') {
+                chatContainer.style.webkitOverflowScrolling = 'touch';
+            }
+        }, { passive: true });
+
+        // Prevent page scrolling when chat is at top/bottom
+        chatContainer.addEventListener('touchmove', (e) => {
+            const { scrollTop, scrollHeight, clientHeight } = chatContainer;
+            
+            if (scrollTop === 0 && e.touches[0].clientY > e.touches[0].startY) {
+                // At top and scrolling up
+                e.preventDefault();
+            } else if (scrollTop + clientHeight >= scrollHeight && e.touches[0].clientY < e.touches[0].startY) {
+                // At bottom and scrolling down  
+                e.preventDefault();
+            }
+        }, { passive: false });
+
+        console.log('📱 Mobile scroll events attached');
+    }
+
+    // Enhanced scroll to bottom for mobile
+    scrollToBottom() {
+        const chatContainer = document.querySelector('.chat-container');
+        
+        if (chatContainer) {
+            // Multiple scroll attempts for mobile compatibility
+            const scrollToBottomAttempt = () => {
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+            };
+            
+            // Immediate scroll
+            scrollToBottomAttempt();
+            
+            // Delayed scroll for mobile
+            requestAnimationFrame(() => {
+                scrollToBottomAttempt();
+                
+                if (this.isMobile) {
+                    setTimeout(scrollToBottomAttempt, 50);
+                    setTimeout(scrollToBottomAttempt, 100);
+                    setTimeout(scrollToBottomAttempt, 200);
+                }
+            });
+        }
+    }
+
+
+    // MOBILE SCROLL FIX - Add mobile scroll handlers
+    addMobileScrollHandlers() {
+        if (!this.isMobile) return;
+
+        const chatContainer = document.getElementById('chatMessages')?.parentElement;
+        
+        if (chatContainer) {
+            // Prevent scroll lock issues
+            let isScrolling = false;
+            
+            chatContainer.addEventListener('touchstart', () => {
+                isScrolling = true;
+            }, { passive: true });
+            
+            chatContainer.addEventListener('touchend', () => {
+                isScrolling = false;
+            }, { passive: true });
+            
+            // Force scroll unlock if stuck
+            chatContainer.addEventListener('touchmove', (e) => {
+                if (!isScrolling) {
+                    e.preventDefault();
+                    return false;
+                }
+            }, { passive: false });
+
+            // Handle scroll momentum
+            chatContainer.addEventListener('scroll', () => {
+                chatContainer.style.webkitOverflowScrolling = 'touch';
+            }, { passive: true });
         }
     }
 
@@ -379,13 +545,49 @@ class SebastianLabs {
         
         // Mobile nav
         this.setupMobileNavigation();
+        
+        // Window resize handler
+        window.addEventListener('resize', () => {
+            this.handleResize();
+        });
     }
 
+    // MOBILE SCROLL FIX - Better resize handler
+    handleResize() {
+        const wasMobile = this.isMobile;
+        this.isMobile = window.innerWidth <= 768;
+        
+        if (wasMobile !== this.isMobile) {
+            // Re-setup mobile scrolling if switched to mobile
+            if (this.isMobile) {
+                setTimeout(() => this.setupMobileScrolling(), 100);
+            }
+        }
+    }
+
+    // MOBILE SCROLL FIX - Fixed textarea with no scrollbar
     setupMessageInput() {
         const messageInput = document.getElementById('messageInput');
         const sendBtn = document.getElementById('sendBtn');
 
         if (messageInput) {
+            // MOBILE SPECIFIC FIXES
+            if (this.isMobile) {
+                messageInput.style.overflow = 'hidden';
+                messageInput.style.overflowY = 'hidden';
+                messageInput.style.overflowX = 'hidden';
+                messageInput.style.scrollbarWidth = 'none';
+                messageInput.style.msOverflowStyle = 'none';
+                messageInput.classList.add('no-scrollbar');
+                
+                // Prevent scroll on mobile
+                messageInput.addEventListener('scroll', (e) => {
+                    e.preventDefault();
+                    messageInput.scrollTop = 0;
+                    return false;
+                });
+            }
+
             messageInput.addEventListener('input', () => {
                 this.autoResizeTextarea();
                 this.updateSendButton();
@@ -403,6 +605,23 @@ class SebastianLabs {
             sendBtn.addEventListener('click', () => {
                 this.sendMessage();
             });
+        }
+    }
+
+    // MOBILE SCROLL FIX - Fixed auto-resize
+    autoResizeTextarea() {
+        const textarea = document.getElementById('messageInput');
+        if (textarea) {
+            textarea.style.height = 'auto';
+            const newHeight = Math.min(textarea.scrollHeight, this.isMobile ? 80 : 120);
+            textarea.style.height = newHeight + 'px';
+            
+            // Force remove scrollbar on mobile
+            if (this.isMobile) {
+                textarea.style.overflow = 'hidden';
+                textarea.style.overflowY = 'hidden';
+                textarea.scrollTop = 0;
+            }
         }
     }
 
@@ -665,14 +884,6 @@ class SebastianLabs {
         }
     }
 
-    autoResizeTextarea() {
-        const textarea = document.getElementById('messageInput');
-        if (textarea) {
-            textarea.style.height = 'auto';
-            textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
-        }
-    }
-
     updateSendButton() {
         const messageInput = document.getElementById('messageInput');
         const sendBtn = document.getElementById('sendBtn');
@@ -722,7 +933,7 @@ class SebastianLabs {
             // Show typing indicator
             this.showTypingIndicator();
 
-            // Send to AI - FIXED MODEL SELECTION
+            // Send to AI
             let response;
             try {
                 if (this.isAuthenticated && typeof puter !== 'undefined' && puter.ai) {
@@ -839,7 +1050,6 @@ class SebastianLabs {
         return responses[Math.floor(Math.random() * responses.length)];
     }
 
-    // FIXED FORMAT RESPONSE - Proper extraction of content from Puter.js response
     formatResponse(response) {
         console.log('Raw response:', response);
         
@@ -850,7 +1060,7 @@ class SebastianLabs {
             return response;
         }
         
-        // Handle Puter.js response format - FIXED
+        // Handle Puter.js response format
         if (response && typeof response === 'object') {
             // Check for direct content property first
             if (response.content && typeof response.content === 'string') {
@@ -886,7 +1096,7 @@ class SebastianLabs {
                 return response.response;
             }
             
-            // If it's a role/content object (like your error case)
+            // If it's a role/content object
             if (response.role === 'assistant' && response.content) {
                 return response.content;
             }
@@ -906,7 +1116,6 @@ class SebastianLabs {
         return String(response);
     }
 
-    // Helper function to extract text from complex objects
     extractTextFromObject(obj) {
         if (!obj || typeof obj !== 'object') return null;
         
@@ -942,6 +1151,7 @@ class SebastianLabs {
         }
     }
 
+    // MOBILE SCROLL FIX - Enhanced message adding with proper scroll
     addMessage(sender, content, files = []) {
         const chatMessages = document.getElementById('chatMessages');
         if (!chatMessages) {
@@ -949,7 +1159,7 @@ class SebastianLabs {
             return;
         }
 
-        // SAFE CONTENT HANDLING - FIX for substring error
+        // SAFE CONTENT HANDLING
         let safeContent = '';
         try {
             if (content === null || content === undefined) {
@@ -1021,27 +1231,51 @@ class SebastianLabs {
             messageEl.style.transform = 'translateY(0)';
         });
         
-        // Scroll to bottom
-        setTimeout(() => {
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-        }, 100);
+        // MOBILE SCROLL FIX - Enhanced scroll to bottom
+        this.scrollToBottom();
 
-        // Update stats - SAFE CALCULATION
+        // Update stats - FIXED calculation
         if (sender === 'user') {
             this.messageHistory.push({ role: 'user', content: safeContent });
-            this.messageCount++;
+            this.messageCount = Math.max(0, (this.messageCount || 0) + 1);
         } else {
             this.messageHistory.push({ role: 'assistant', content: safeContent });
         }
 
         // FIXED token count calculation
-        const contentLength = safeContent ? safeContent.length : 0;
-        this.tokenCount += contentLength;
+        const contentLength = (safeContent && typeof safeContent === 'string') ? safeContent.length : 0;
+        this.tokenCount = Math.max(0, (this.tokenCount || 0) + contentLength);
         this.updateStats();
 
         // SAFE substring for logging
-        const logContent = safeContent.length > 50 ? safeContent.substring(0, 50) + '...' : safeContent;
+        const logContent = safeContent && safeContent.length > 50 ? safeContent.substring(0, 50) + '...' : safeContent;
         console.log(`✅ Message added: ${sender} - "${logContent}"`);
+    }
+
+    // MOBILE SCROLL FIX - Enhanced scroll function
+    scrollToBottom() {
+        const chatContainer = document.getElementById('chatMessages')?.parentElement;
+        const chatMessages = document.getElementById('chatMessages');
+        
+        if (chatContainer) {
+            // Multiple scroll attempts for better mobile compatibility
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+            
+            // Use requestAnimationFrame for smooth scrolling
+            requestAnimationFrame(() => {
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+                
+                // Additional scroll for mobile devices
+                if (this.isMobile) {
+                    setTimeout(() => {
+                        chatContainer.scrollTop = chatContainer.scrollHeight;
+                        // Force webkit scroll refresh
+                        chatContainer.style.webkitOverflowScrolling = 'auto';
+                        chatContainer.style.webkitOverflowScrolling = 'touch';
+                    }, 100);
+                }
+            });
+        }
     }
 
     formatMessageText(text) {
@@ -1080,7 +1314,7 @@ class SebastianLabs {
         `;
         
         chatMessages.appendChild(typingEl);
-        chatMessages.scrollTop = chatMessages.scrollHeight;
+        this.scrollToBottom();
     }
 
     hideTypingIndicator() {
@@ -1090,15 +1324,20 @@ class SebastianLabs {
         }
     }
 
+    // FIXED updateStats
     updateStats() {
         const messageCountEl = document.getElementById('messageCount');
         const tokenCountEl = document.getElementById('tokenCount');
         
+        // Ensure numbers are valid
+        const messageCount = Math.max(0, this.messageCount || 0);
+        const tokenCount = Math.max(0, this.tokenCount || 0);
+        
         if (messageCountEl) {
-            messageCountEl.textContent = `${this.messageCount || 0} messages`;
+            messageCountEl.textContent = `${messageCount} messages`;
         }
         if (tokenCountEl) {
-            tokenCountEl.textContent = `${this.tokenCount || 0} tokens`;
+            tokenCountEl.textContent = `${tokenCount} tokens`;
         }
     }
 

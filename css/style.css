@@ -1964,19 +1964,25 @@ body {
 
 /* Special fixes for mobile input issues */
 @media (max-width: 768px) {
-    /* Prevent zoom on input focus */
-    #messageInput,
-    input,
-    textarea {
+    #messageInput {
+        /* Prevent zoom on focus */
         font-size: 16px !important;
+        /* Fix keyboard overlay issues */
+        transform: translateZ(0);
+        -webkit-transform: translateZ(0);
+        /* Ensure proper touch handling */
+        touch-action: manipulation;
+        -webkit-appearance: none;
+        appearance: none;
     }
 
-    /* Ensure input is always accessible */
     .input-container {
+        /* Ensure input stays accessible */
         position: relative;
-        z-index: 1000;
+        z-index: 1001;
+        /* Prevent layout shifts */
+        contain: layout;
     }
-
     /* Fix for keyboard overlay */
     .chat-input {
         position: -webkit-sticky;
@@ -2066,4 +2072,202 @@ body {
 .light-theme .header-action-btn:hover {
     background: var(--bg-hover) !important;
     color: var(--primary) !important;
+}
+/* Mobile Scroll Fixes */
+@media (max-width: 768px) {
+    /* Fix touch scrolling */
+    .chat-container {
+        -webkit-overflow-scrolling: touch;
+        overflow-scrolling: touch;
+        transform: translateZ(0);
+        -webkit-transform: translateZ(0);
+        will-change: scroll-position;
+    }
+
+    /* Prevent scroll lock */
+    body, html {
+        -webkit-overflow-scrolling: touch;
+        overflow-scrolling: touch;
+        height: 100%;
+        position: relative;
+    }
+
+    /* Fix input focus issues */
+    .chat-input {
+        position: -webkit-sticky;
+        position: sticky;
+        bottom: 0;
+        z-index: 1000;
+    }
+
+    /* Ensure scrollable area */
+    .main-container {
+        height: 100vh;
+        overflow: hidden;
+    }
+
+    .chat-area {
+        height: 100%;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .chat-container {
+        flex: 1;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        padding-bottom: env(safe-area-inset-bottom);
+    }
+}
+
+/* MOBILE SCROLL FIX - FINAL SOLUTION */
+@media (max-width: 768px) {
+    /* Fix main layout heights */
+    #app {
+        height: 100vh;
+        height: 100dvh; /* Dynamic viewport height for mobile */
+        overflow: hidden;
+    }
+
+    .main-container {
+        height: calc(100vh - var(--header-height) - var(--footer-height) - var(--mobile-nav-height));
+        height: calc(100dvh - var(--header-height) - var(--footer-height) - var(--mobile-nav-height));
+        overflow: hidden;
+        position: relative;
+    }
+
+    /* CRITICAL: Fix chat area to be scrollable */
+    .chat-area {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+
+    /* CRITICAL: Make chat container properly scrollable */
+    .chat-container {
+        flex: 1;
+        overflow-y: auto !important;
+        overflow-x: hidden;
+        -webkit-overflow-scrolling: touch !important;
+        scroll-behavior: smooth;
+        transform: translateZ(0); /* Force hardware acceleration */
+        will-change: scroll-position;
+        padding: var(--space-3);
+        /* Remove any max-height that might conflict */
+        max-height: none !important;
+        /* Ensure proper height calculation */
+        height: calc(100vh - var(--header-height) - var(--footer-height) - var(--mobile-nav-height) - 120px);
+        height: calc(100dvh - var(--header-height) - var(--footer-height) - var(--mobile-nav-height) - 120px);
+    }
+
+    /* Fix chat messages container */
+    .chat-messages {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-4);
+        min-height: min-content;
+        padding-bottom: var(--space-8); /* Extra space at bottom */
+    }
+
+    /* Fix welcome message for mobile */
+    .welcome-message {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: calc(100vh - var(--header-height) - var(--footer-height) - var(--mobile-nav-height) - 200px);
+        padding: var(--space-6);
+        overflow: visible;
+    }
+
+    /* Ensure chat input doesn't interfere */
+    .chat-input {
+        position: sticky;
+        bottom: 0;
+        z-index: 1000;
+        background: var(--bg-secondary);
+        border-top: 1px solid var(--border-primary);
+        padding: var(--space-3);
+        flex-shrink: 0;
+        /* Add safe area for iOS */
+        padding-bottom: max(var(--space-3), env(safe-area-inset-bottom));
+    }
+
+    /* Remove textarea scrollbar completely on mobile */
+    #messageInput {
+        font-size: 16px !important; /* Prevent zoom on iOS */
+        overflow: hidden !important;
+        resize: none !important;
+        scrollbar-width: none !important;
+        -ms-overflow-style: none !important;
+        max-height: 80px;
+    }
+
+    #messageInput::-webkit-scrollbar {
+        display: none !important;
+        width: 0 !important;
+        height: 0 !important;
+    }
+
+    /* Fix mobile panels positioning */
+    .mobile-panels {
+        position: fixed;
+        top: var(--header-height);
+        left: 0;
+        right: 0;
+        bottom: var(--mobile-nav-height);
+        z-index: 40;
+        overflow: hidden;
+    }
+
+    .mobile-panel {
+        height: 100%;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    /* Prevent any body scroll */
+    body {
+        overflow: hidden;
+        position: fixed;
+        width: 100%;
+        height: 100%;
+    }
+
+    /* Force enable touch scrolling */
+    .chat-container,
+    .mobile-panel {
+        touch-action: pan-y;
+        overscroll-behavior: contain;
+    }
+}
+
+/* iOS Safari specific fixes */
+@supports (-webkit-touch-callout: none) {
+    @media (max-width: 768px) {
+        .chat-container {
+            /* iOS Safari height fix */
+            height: calc(100vh - var(--header-height) - var(--footer-height) - var(--mobile-nav-height) - 120px);
+            /* Enable momentum scrolling */
+            -webkit-overflow-scrolling: touch;
+            /* Prevent scroll bouncing */
+            overscroll-behavior-y: contain;
+        }
+
+        /* Fix for iOS Safari viewport */
+        #app {
+            height: 100vh;
+            height: -webkit-fill-available;
+        }
+
+        .main-container {
+            height: calc(100vh - var(--header-height) - var(--footer-height) - var(--mobile-nav-height));
+            height: calc(-webkit-fill-available - var(--header-height) - var(--footer-height) - var(--mobile-nav-height));
+        }
+    }
 }
