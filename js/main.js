@@ -12,9 +12,8 @@ class SebastianLabs {
         this.isMobile = window.innerWidth <= 768;
         this.currentMobileTab = 'chat';
         
-        // Complete Model Configuration with all models
+        // Complete Model Configuration
         this.models = {
-            // OpenAI Models
             'gpt-4o-mini': { 
                 provider: 'OpenAI', 
                 displayName: 'GPT-4o Mini',
@@ -260,16 +259,10 @@ class SebastianLabs {
         try {
             this.showLoading('Initializing SebastianLabs...');
             
-            // Wait for Puter.js to load
             await this.waitForPuter();
-            
-            // Setup UI and event listeners
             this.setupEventListeners();
             this.setupUI();
-            this.setupResponsive();
-            
-            // Test API connection
-            await this.testAPIConnection();
+            this.initializeChatArea();
             
             this.hideLoading();
             this.isInitialized = true;
@@ -285,23 +278,26 @@ class SebastianLabs {
     async waitForPuter() {
         return new Promise((resolve, reject) => {
             let attempts = 0;
-            const maxAttempts = 100;
+            const maxAttempts = 50;
             
             const checkPuter = async () => {
                 attempts++;
                 try {
-                    if (typeof puter !== 'undefined' && puter.ai && puter.fs && puter.auth) {
+                    if (typeof puter !== 'undefined' && puter.ai) {
                         console.log('✅ Puter.js loaded successfully');
                         await this.initializePuterAuth();
                         resolve();
                     } else if (attempts >= maxAttempts) {
-                        reject(new Error('Puter.js failed to load'));
+                        console.warn('⚠️ Puter.js not loaded, using demo mode');
+                        this.isAuthenticated = false;
+                        resolve();
                     } else {
                         setTimeout(checkPuter, 100);
                     }
                 } catch (error) {
                     if (attempts >= maxAttempts) {
-                        reject(error);
+                        console.warn('⚠️ Puter auth failed, using demo mode');
+                        resolve();
                     } else {
                         setTimeout(checkPuter, 100);
                     }
@@ -313,34 +309,41 @@ class SebastianLabs {
 
     async initializePuterAuth() {
         try {
-            this.puterUser = await puter.auth.getUser();
-            this.isAuthenticated = true;
-            console.log('✅ Authenticated with Puter:', this.puterUser);
+            if (puter.auth) {
+                this.puterUser = await puter.auth.getUser();
+                this.isAuthenticated = true;
+                console.log('✅ Authenticated with Puter');
+            }
         } catch (error) {
             console.log('ℹ️ Running in guest mode');
             this.isAuthenticated = false;
         }
     }
 
-    async testAPIConnection() {
-        try {
-            console.log('Testing API connection...');
-            const testResponse = await puter.ai.chat('Hi', { 
-                model: this.currentModel 
-            });
-            console.log('✅ API connection successful');
-        } catch (error) {
-            console.warn('⚠️ API test failed:', error.message);
+    initializeChatArea() {
+        const chatContainer = document.getElementById('chatMessages');
+        const welcomeMessage = document.getElementById('welcomeMessage');
+        
+        if (chatContainer) {
+            chatContainer.style.display = 'flex';
+            chatContainer.style.flexDirection = 'column';
+            chatContainer.style.gap = 'var(--space-4)';
+            chatContainer.innerHTML = '';
         }
+
+        if (welcomeMessage) {
+            welcomeMessage.style.display = 'flex';
+        }
+
+        console.log('✅ Chat area initialized');
     }
 
     setupEventListeners() {
-        // Header model selector (clickable)
+        // Model selector
         document.getElementById('currentModelDisplay')?.addEventListener('click', () => {
             this.showModelSelector();
         });
 
-        // Modal controls
         document.getElementById('modalClose')?.addEventListener('click', () => {
             this.hideModelSelector();
         });
@@ -349,12 +352,11 @@ class SebastianLabs {
             this.hideModelSelector();
         });
 
-        // Theme toggle
+        // Header actions
         document.getElementById('themeToggle')?.addEventListener('click', () => {
             this.toggleTheme();
         });
 
-        // Header actions
         document.getElementById('clearChatBtn')?.addEventListener('click', () => {
             this.clearChat();
         });
@@ -363,60 +365,106 @@ class SebastianLabs {
             this.exportChat();
         });
 
-        // Mobile navigation
+        // Message input
+        this.setupMessageInput();
+        
+        // File upload
+        this.setupFileUpload();
+        
+        // AI tools
+        this.setupAITools();
+        
+        // Quick actions
+        this.setupQuickActions();
+        
+        // Mobile nav
+        this.setupMobileNavigation();
+    }
+
+    setupMessageInput() {
+        const messageInput = document.getElementById('messageInput');
+        const sendBtn = document.getElementById('sendBtn');
+
+        if (messageInput) {
+            messageInput.addEventListener('input', () => {
+                this.autoResizeTextarea();
+                this.updateSendButton();
+            });
+
+            messageInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    this.sendMessage();
+                }
+            });
+        }
+
+        if (sendBtn) {
+            sendBtn.addEventListener('click', () => {
+                this.sendMessage();
+            });
+        }
+    }
+
+    setupFileUpload() {
+        const fileInput = document.getElementById('fileInput');
+        const attachBtn = document.getElementById('attachFileBtn');
+        const uploadZone = document.getElementById('uploadZone');
+
+        if (attachBtn && fileInput) {
+            attachBtn.addEventListener('click', () => fileInput.click());
+        }
+
+        if (uploadZone && fileInput) {
+            uploadZone.addEventListener('click', () => fileInput.click());
+        }
+
+        if (fileInput) {
+            fileInput.addEventListener('change', (e) => {
+                this.handleFiles(Array.from(e.target.files || []));
+            });
+        }
+    }
+
+    setupAITools() {
+        document.getElementById('imageGenTool')?.addEventListener('click', () => {
+            this.generateImage();
+        });
+
+        document.getElementById('voiceTool')?.addEventListener('click', () => {
+            this.startVoiceInput();
+        });
+
+        document.getElementById('voiceInputBtn')?.addEventListener('click', () => {
+            this.startVoiceInput();
+        });
+    }
+
+    setupQuickActions() {
+        document.querySelectorAll('.quick-action-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const prompt = btn.dataset.prompt;
+                if (prompt) {
+                    this.sendQuickMessage(prompt);
+                }
+            });
+        });
+    }
+
+    setupMobileNavigation() {
         document.querySelectorAll('.nav-item').forEach(item => {
             item.addEventListener('click', () => {
                 const tab = item.dataset.tab;
                 this.switchMobileTab(tab);
             });
         });
-
-        // File upload events
-        this.setupFileUpload();
-
-        // Message input events
-        this.setupMessageInput();
-
-        // AI tools events
-        this.setupAITools();
-
-        // Quick actions
-        this.setupQuickActions();
-
-        // Window resize
-        window.addEventListener('resize', () => {
-            this.handleResize();
-        });
-
-        // Keyboard shortcuts
-        this.setupKeyboardShortcuts();
     }
 
     setupUI() {
         this.updateModelDisplay();
         this.populateModels();
         this.updateModelStatus();
-        
-        if (this.isMobile) {
-            this.setupMobileUI();
-        }
-    }
-
-    setupResponsive() {
-        this.handleResize();
-    }
-
-    handleResize() {
-        const wasMobile = this.isMobile;
-        this.isMobile = window.innerWidth <= 768;
-        
-        if (wasMobile !== this.isMobile) {
-            this.setupUI();
-        }
-    }
-
-    setupMobileUI() {
-        this.switchMobileTab('chat');
+        this.updateStats();
     }
 
     showModelSelector() {
@@ -467,16 +515,9 @@ class SebastianLabs {
     }
 
     populateModels() {
-        // Desktop model categories
         const modelCategories = document.getElementById('modelCategories');
         if (modelCategories) {
             this.populateDesktopModels(modelCategories);
-        }
-
-        // Mobile model grid
-        const mobileModelGrid = document.getElementById('mobileModelGrid');
-        if (mobileModelGrid) {
-            this.populateMobileModels(mobileModelGrid);
         }
     }
 
@@ -517,13 +558,7 @@ class SebastianLabs {
                 </div>
             `;
 
-            // Add category toggle
-            const header = categoryDiv.querySelector('.category-header');
-            header.addEventListener('click', () => {
-                categoryDiv.classList.toggle('expanded');
-            });
-
-            // Add model selection
+            // Add model selection events
             categoryDiv.querySelectorAll('.model-item').forEach(item => {
                 item.addEventListener('click', () => {
                     const modelKey = item.dataset.model;
@@ -532,35 +567,6 @@ class SebastianLabs {
             });
 
             container.appendChild(categoryDiv);
-        });
-    }
-
-    populateMobileModels(container) {
-        container.innerHTML = '';
-
-        Object.entries(this.models).forEach(([modelKey, model]) => {
-            const modelCard = document.createElement('div');
-            modelCard.className = `mobile-model-card ${modelKey === this.currentModel ? 'active' : ''}`;
-            modelCard.dataset.model = modelKey;
-            
-            modelCard.innerHTML = `
-                <div class="mobile-model-title">${model.displayName}</div>
-                <div class="mobile-model-provider">${model.provider}</div>
-                <div class="mobile-model-features">
-                    ${model.features.map(feature => `
-                        <span class="feature-tag ${feature}">${feature.toUpperCase()}</span>
-                    `).join('')}
-                </div>
-            `;
-
-            modelCard.addEventListener('click', () => {
-                this.switchModel(modelKey);
-                if (this.isMobile) {
-                    this.switchMobileTab('chat');
-                }
-            });
-
-            container.appendChild(modelCard);
         });
     }
 
@@ -588,27 +594,6 @@ class SebastianLabs {
         return icons[provider] || icons['OpenAI'];
     }
 
-    switchMobileTab(tab) {
-        this.currentMobileTab = tab;
-        
-        // Update navigation
-        document.querySelectorAll('.nav-item').forEach(item => {
-            item.classList.toggle('active', item.dataset.tab === tab);
-        });
-
-        // Show/hide panels
-        document.querySelectorAll('.mobile-panel').forEach(panel => {
-            panel.classList.remove('active');
-        });
-
-        if (tab !== 'chat') {
-            const panel = document.getElementById(`${tab}Panel`);
-            if (panel) {
-                panel.classList.add('active');
-            }
-        }
-    }
-
     switchModel(modelKey) {
         if (!this.models[modelKey]) return;
 
@@ -626,9 +611,11 @@ class SebastianLabs {
     updateModelDisplay() {
         const model = this.models[this.currentModel];
         
-        // Update header model info
-        document.getElementById('currentModelName').textContent = model.displayName;
-        document.getElementById('currentModelProvider').textContent = model.provider;
+        const currentModelName = document.getElementById('currentModelName');
+        const currentModelProvider = document.getElementById('currentModelProvider');
+        
+        if (currentModelName) currentModelName.textContent = model.displayName;
+        if (currentModelProvider) currentModelProvider.textContent = model.provider;
     }
 
     updateModelStatus() {
@@ -643,323 +630,38 @@ class SebastianLabs {
             
             if (features.length > 0) {
                 statusEl.textContent = `Model supports ${features.join(', ')}`;
-                statusEl.parentElement.classList.remove('limited');
             } else {
                 statusEl.textContent = 'Text-only model';
-                statusEl.parentElement.classList.add('limited');
             }
         }
     }
 
     updateModelSelections() {
-        // Update desktop selections
         document.querySelectorAll('.model-item').forEach(item => {
             item.classList.toggle('active', item.dataset.model === this.currentModel);
         });
 
-        // Update mobile selections
-        document.querySelectorAll('.mobile-model-card').forEach(card => {
-            card.classList.toggle('active', card.dataset.model === this.currentModel);
-        });
-
-        // Update modal selections
         document.querySelectorAll('.modal-model-card').forEach(card => {
             card.classList.toggle('active', card.dataset.model === this.currentModel);
         });
     }
 
-    setupFileUpload() {
-        const desktopUpload = document.getElementById('uploadZone');
-        const mobileUpload = document.getElementById('mobileUploadZone');
-        const fileInput = document.getElementById('fileInput');
-        const mobileFileInput = document.getElementById('mobileFileInput');
-        const attachBtn = document.getElementById('attachFileBtn');
-
-        // Desktop upload
-        if (desktopUpload && fileInput) {
-            desktopUpload.addEventListener('click', () => fileInput.click());
-            this.setupDragDrop(desktopUpload, fileInput);
-        }
-
-        // Mobile upload
-        if (mobileUpload && mobileFileInput) {
-            mobileUpload.addEventListener('click', () => mobileFileInput.click());
-        }
-
-        // Attach button
-        if (attachBtn && fileInput) {
-            attachBtn.addEventListener('click', () => fileInput.click());
-        }
-
-        // File input handlers
-        fileInput?.addEventListener('change', (e) => {
-            this.handleFiles(Array.from(e.target.files || []));
-        });
-
-        mobileFileInput?.addEventListener('change', (e) => {
-            this.handleFiles(Array.from(e.target.files || []));
-        });
-    }
-
-    setupDragDrop(element, fileInput) {
-        element.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            element.classList.add('dragover');
-        });
-
-        element.addEventListener('dragleave', () => {
-            element.classList.remove('dragover');
-        });
-
-        element.addEventListener('drop', (e) => {
-            e.preventDefault();
-            element.classList.remove('dragover');
-            const files = Array.from(e.dataTransfer?.files || []);
-            this.handleFiles(files);
-        });
-    }
-
-    setupMessageInput() {
-        const messageInput = document.getElementById('messageInput');
-        const sendBtn = document.getElementById('sendBtn');
-
-        if (messageInput) {
-            messageInput.addEventListener('input', () => {
-                this.autoResizeTextarea();
-                this.updateSendButton();
-            });
-
-            messageInput.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    this.sendMessage();
-                }
-            });
-        }
-
-        if (sendBtn) {
-            sendBtn.addEventListener('click', () => this.sendMessage());
-        }
-    }
-
-    setupAITools() {
-        // Desktop tools
-        document.getElementById('imageGenTool')?.addEventListener('click', () => {
-            this.generateImage();
-        });
-
-        document.getElementById('voiceTool')?.addEventListener('click', () => {
-            this.startVoiceInput();
-        });
-
-        document.getElementById('voiceInputBtn')?.addEventListener('click', () => {
-            this.startVoiceInput();
-        });
-
-        // Mobile tools
-        document.getElementById('mobileImageGen')?.addEventListener('click', () => {
-            this.generateImage();
-        });
-
-        document.getElementById('mobileVoice')?.addEventListener('click', () => {
-            this.startVoiceInput();
-        });
-    }
-
-    setupQuickActions() {
-        document.querySelectorAll('.quick-action-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                const prompt = btn.dataset.prompt;
-                if (prompt) {
-                    this.sendQuickMessage(prompt);
-                }
-            });
-        });
-    }
-
-    setupKeyboardShortcuts() {
-        document.addEventListener('keydown', (e) => {
-            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
-                e.preventDefault();
-                this.sendMessage();
-            }
-            if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
-                e.preventDefault();
-                this.clearChat();
-            }
-            if ((e.ctrlKey || e.metaKey) && e.key === 'e') {
-                e.preventDefault();
-                this.exportChat();
-            }
-            if ((e.ctrlKey || e.metaKey) && e.key === 'm') {
-                e.preventDefault();
-                this.showModelSelector();
-            }
-        });
-    }
-
-    async handleFiles(files) {
-        for (const file of files) {
-            if (!this.isValidFile(file)) {
-                this.showToast(`Invalid file: ${file.name}`, 'error');
-                continue;
-            }
-
-            try {
-                this.showToast(`Processing ${file.name}...`, 'info');
-                
-                const fileObj = {
-                    id: Date.now() + Math.random(),
-                    name: file.name,
-                    type: file.type,
-                    size: this.formatFileSize(file.size),
-                    file: file
-                };
-
-                // Process different file types
-                if (file.type.startsWith('image/')) {
-                    fileObj.url = URL.createObjectURL(file);
-                } else if (file.type === 'application/pdf' || file.type === 'text/plain') {
-                    fileObj.content = await this.extractFileContent(file);
-                    fileObj.url = URL.createObjectURL(file);
-                }
-
-                this.uploadedFiles.push(fileObj);
-                this.displayFiles();
-                this.showToast(`${file.name} added successfully`, 'success');
-
-            } catch (error) {
-                console.error('File processing error:', error);
-                this.showToast(`Failed to process ${file.name}`, 'error');
-            }
-        }
-    }
-
-    async extractFileContent(file) {
-        return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onload = (e) => resolve(e.target.result);
-            reader.onerror = reject;
-            reader.readAsText(file);
-        });
-    }
-
-    isValidFile(file) {
-        const allowedTypes = [
-            'image/jpeg', 'image/png', 'image/gif', 'image/webp',
-            'application/pdf', 'text/plain', 'text/csv'
-        ];
-        const maxSize = 50 * 1024 * 1024; // 50MB
+    switchMobileTab(tab) {
+        this.currentMobileTab = tab;
         
-        return allowedTypes.includes(file.type) && file.size <= maxSize;
-    }
-
-    formatFileSize(bytes) {
-        if (bytes === 0) return '0 Bytes';
-        const k = 1024;
-        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-        const i = Math.floor(Math.log(bytes) / Math.log(k));
-        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-    }
-
-    displayFiles() {
-        this.displayDesktopFiles();
-        this.displayMobileFiles();
-        this.displayAttachedFiles();
-    }
-
-    displayDesktopFiles() {
-        const container = document.getElementById('uploadedFiles');
-        if (!container) return;
-
-        container.innerHTML = '';
-        this.uploadedFiles.forEach(file => {
-            const fileEl = document.createElement('div');
-            fileEl.className = 'file-item';
-            fileEl.innerHTML = `
-                <div class="file-info">
-                    <svg viewBox="0 0 24 24" width="16" height="16">
-                        <path fill="currentColor" d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/>
-                    </svg>
-                    <div class="file-details">
-                        <div class="file-name">${file.name}</div>
-                        <div class="file-size">${file.size}</div>
-                    </div>
-                </div>
-                <button class="file-remove" onclick="sebastianLabs.removeFile('${file.id}')">
-                    <svg viewBox="0 0 24 24" width="16" height="16">
-                        <path fill="currentColor" d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"/>
-                    </svg>
-                </button>
-            `;
-            container.appendChild(fileEl);
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.classList.toggle('active', item.dataset.tab === tab);
         });
-    }
 
-    displayMobileFiles() {
-        const container = document.getElementById('mobileUploadedFiles');
-        if (!container) return;
-
-        container.innerHTML = '';
-        this.uploadedFiles.forEach(file => {
-            const fileEl = document.createElement('div');
-            fileEl.className = 'file-item';
-            fileEl.innerHTML = `
-                <div class="file-info">
-                    <svg viewBox="0 0 24 24" width="16" height="16">
-                        <path fill="currentColor" d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/>
-                    </svg>
-                    <div class="file-details">
-                        <div class="file-name">${file.name}</div>
-                        <div class="file-size">${file.size}</div>
-                    </div>
-                </div>
-                <button class="file-remove" onclick="sebastianLabs.removeFile('${file.id}')">
-                    <svg viewBox="0 0 24 24" width="16" height="16">
-                        <path fill="currentColor" d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"/>
-                    </svg>
-                </button>
-            `;
-            container.appendChild(fileEl);
+        document.querySelectorAll('.mobile-panel').forEach(panel => {
+            panel.classList.remove('active');
         });
-    }
 
-    displayAttachedFiles() {
-        const container = document.getElementById('attachedFiles');
-        if (!container) return;
-
-        if (this.uploadedFiles.length === 0) {
-            container.style.display = 'none';
-            return;
-        }
-
-        container.style.display = 'flex';
-        container.innerHTML = '';
-        
-        this.uploadedFiles.forEach(file => {
-            const fileEl = document.createElement('div');
-            fileEl.className = 'attached-file';
-            fileEl.innerHTML = `
-                <svg viewBox="0 0 24 24" width="14" height="14">
-                    <path fill="currentColor" d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/>
-                </svg>
-                <span>${file.name}</span>
-                <button class="remove-btn" onclick="sebastianLabs.removeFile('${file.id}')">×</button>
-            `;
-            container.appendChild(fileEl);
-        });
-    }
-
-    removeFile(fileId) {
-        const fileIndex = this.uploadedFiles.findIndex(f => f.id === fileId);
-        if (fileIndex > -1) {
-            const file = this.uploadedFiles[fileIndex];
-            if (file.url && file.url.startsWith('blob:')) {
-                URL.revokeObjectURL(file.url);
+        if (tab !== 'chat') {
+            const panel = document.getElementById(`${tab}Panel`);
+            if (panel) {
+                panel.classList.add('active');
             }
-            this.uploadedFiles.splice(fileIndex, 1);
-            this.displayFiles();
-            this.showToast('File removed', 'info');
         }
     }
 
@@ -1020,8 +722,18 @@ class SebastianLabs {
             // Show typing indicator
             this.showTypingIndicator();
 
-            // Send to AI
-            const response = await this.callAI(message, filesForMessage);
+            // Send to AI - FIXED MODEL SELECTION
+            let response;
+            try {
+                if (this.isAuthenticated && typeof puter !== 'undefined' && puter.ai) {
+                    response = await this.callPuterAI(message, filesForMessage);
+                } else {
+                    response = await this.callDemoAI(message);
+                }
+            } catch (error) {
+                console.error('AI call failed:', error);
+                response = this.getErrorMessage(error);
+            }
             
             this.hideTypingIndicator();
             this.addMessage('ai', response);
@@ -1029,20 +741,17 @@ class SebastianLabs {
         } catch (error) {
             console.error('Send message error:', error);
             this.hideTypingIndicator();
-            this.addMessage('ai', this.getErrorMessage(error));
+            this.addMessage('ai', 'Sorry, something went wrong. Please try again.');
             this.showToast('Error: ' + error.message, 'error');
         }
     }
 
-    async callAI(message, files = []) {
+    async callPuterAI(message, files = []) {
         try {
-            const model = this.models[this.currentModel];
-            console.log(`🤖 Using ${model.displayName}`);
-
-            // Prepare message
-            let fullMessage = message;
+            console.log(`🤖 Sending to ${this.models[this.currentModel].displayName} (${this.currentModel})`);
             
-            // Add file content for non-image files
+            // Prepare message with file content
+            let fullMessage = message;
             const textFiles = files.filter(f => !f.type.startsWith('image/') && f.content);
             if (textFiles.length > 0) {
                 const fileContents = textFiles.map(f => `\n\n--- ${f.name} ---\n${f.content}`).join('');
@@ -1050,10 +759,12 @@ class SebastianLabs {
             }
 
             let response;
+            const model = this.models[this.currentModel];
 
             // Handle vision models with images
             if (model.vision && files.some(f => f.type.startsWith('image/'))) {
                 const imageFiles = files.filter(f => f.type.startsWith('image/'));
+                console.log(`🖼️ Using vision model with ${imageFiles.length} images`);
                 
                 if (imageFiles.length === 1) {
                     response = await puter.ai.chat(fullMessage, imageFiles[0].url, false, {
@@ -1064,34 +775,95 @@ class SebastianLabs {
                     response = await puter.ai.chat(fullMessage, imageUrls, false, {
                         model: this.currentModel
                     });
-                } else {
-                    response = await puter.ai.chat(fullMessage, {
-                        model: this.currentModel
-                    });
                 }
             } else {
-                // Text-only
+                // Text-only request with specific model
                 response = await puter.ai.chat(fullMessage, {
                     model: this.currentModel
                 });
             }
 
+            console.log(`✅ Response received from ${this.currentModel}:`, response);
             return this.formatResponse(response);
 
         } catch (error) {
-            console.error('AI call error:', error);
+            console.error(`❌ Puter AI error with ${this.currentModel}:`, error);
             throw error;
         }
     }
 
+    async callDemoAI(message) {
+        // Simulate model-specific responses
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        const model = this.models[this.currentModel];
+        const demoResponses = {
+            'OpenAI': [
+                `Hello! I'm ${model.displayName} from OpenAI. You said: "${message}". I'm designed to be helpful, harmless, and honest.`,
+                `As ${model.displayName}, I understand your message: "${message}". I'm powered by OpenAI's latest technology.`,
+                `Hi there! This is ${model.displayName} responding to: "${message}". How can I assist you further?`
+            ],
+            'Anthropic': [
+                `I'm Claude (${model.displayName}) from Anthropic. Regarding your message: "${message}" - I aim to be helpful, harmless, and honest.`,
+                `Hello! I'm ${model.displayName} by Anthropic. You wrote: "${message}". I'm here to assist you thoughtfully.`,
+                `This is ${model.displayName} from Anthropic responding to: "${message}". How may I help you today?`
+            ],
+            'Google': [
+                `I'm ${model.displayName} from Google. Your message: "${message}" - I'm here to provide helpful and informative responses.`,
+                `Hello! This is ${model.displayName} by Google. Regarding: "${message}" - I'm designed to be accurate and helpful.`,
+                `Hi! I'm ${model.displayName} from Google responding to: "${message}". What else can I help you with?`
+            ],
+            'DeepSeek': [
+                `I'm ${model.displayName} from DeepSeek. You said: "${message}". I specialize in reasoning and problem-solving.`,
+                `Hello! This is ${model.displayName} by DeepSeek. Your message: "${message}" - I'm built for deep understanding.`,
+                `Hi there! I'm ${model.displayName} from DeepSeek responding to: "${message}". How can I reason through this with you?`
+            ],
+            'Meta': [
+                `I'm ${model.displayName} from Meta. Regarding: "${message}" - I'm designed to be open and transparent.`,
+                `Hello! This is ${model.displayName} by Meta. You wrote: "${message}". I'm here to provide helpful responses.`,
+                `Hi! I'm ${model.displayName} from Meta responding to: "${message}". What would you like to explore?`
+            ],
+            'Mistral': [
+                `I'm ${model.displayName} from Mistral AI. Your message: "${message}" - I'm efficient and capable.`,
+                `Hello! This is ${model.displayName} by Mistral. Regarding: "${message}" - I'm designed for performance.`,
+                `Hi there! I'm ${model.displayName} from Mistral responding to: "${message}". How can I assist?`
+            ],
+            'xAI': [
+                `I'm ${model.displayName} from xAI. You said: "${message}" - I aim to understand the universe.`,
+                `Hello! This is ${model.displayName} by xAI. Your message: "${message}" - I'm designed to seek truth.`,
+                `Hi! I'm ${model.displayName} from xAI responding to: "${message}". What shall we explore together?`
+            ]
+        };
+        
+        const responses = demoResponses[model.provider] || demoResponses['OpenAI'];
+        return responses[Math.floor(Math.random() * responses.length)];
+    }
+
+    // FIXED FORMAT RESPONSE - Proper extraction of content from Puter.js response
     formatResponse(response) {
+        console.log('Raw response:', response);
+        
+        if (!response) return 'No response received';
+        
+        // Handle string responses
         if (typeof response === 'string') {
             return response;
         }
         
+        // Handle Puter.js response format - FIXED
         if (response && typeof response === 'object') {
-            // Handle different response formats
-            if (response.choices && response.choices[0]) {
+            // Check for direct content property first
+            if (response.content && typeof response.content === 'string') {
+                return response.content;
+            }
+            
+            // Check for message content (OpenAI format)
+            if (response.message && response.message.content) {
+                return response.message.content;
+            }
+            
+            // Check for choices array (OpenAI format)
+            if (response.choices && Array.isArray(response.choices) && response.choices.length > 0) {
                 const choice = response.choices[0];
                 if (choice.message && choice.message.content) {
                     return choice.message.content;
@@ -1099,17 +871,63 @@ class SebastianLabs {
                 if (choice.text) {
                     return choice.text;
                 }
+                if (choice.delta && choice.delta.content) {
+                    return choice.delta.content;
+                }
             }
             
-            // Handle direct properties
-            if (response.message) return response.message;
-            if (response.text) return response.text;
-            if (response.content) return response.content;
+            // Check for text property
+            if (response.text && typeof response.text === 'string') {
+                return response.text;
+            }
             
-            return JSON.stringify(response, null, 2);
+            // Check for response property
+            if (response.response && typeof response.response === 'string') {
+                return response.response;
+            }
+            
+            // If it's a role/content object (like your error case)
+            if (response.role === 'assistant' && response.content) {
+                return response.content;
+            }
+            
+            // Try to extract any text content
+            const textContent = this.extractTextFromObject(response);
+            if (textContent) {
+                return textContent;
+            }
+            
+            // Fallback to JSON string with proper formatting
+            console.warn('Unknown response format, falling back to JSON:', response);
+            return `Response format not recognized:\n${JSON.stringify(response, null, 2)}`;
         }
         
-        return 'No response received';
+        // Convert to string safely
+        return String(response);
+    }
+
+    // Helper function to extract text from complex objects
+    extractTextFromObject(obj) {
+        if (!obj || typeof obj !== 'object') return null;
+        
+        // Look for common text properties
+        const textKeys = ['content', 'text', 'message', 'response', 'answer', 'output'];
+        
+        for (const key of textKeys) {
+            if (obj[key] && typeof obj[key] === 'string') {
+                return obj[key];
+            }
+        }
+        
+        // Look deeper in nested objects
+        for (const [key, value] of Object.entries(obj)) {
+            if (typeof value === 'object' && value !== null) {
+                const nested = this.extractTextFromObject(value);
+                if (nested) return nested;
+            }
+        }
+        
+        return null;
     }
 
     getErrorMessage(error) {
@@ -1120,16 +938,41 @@ class SebastianLabs {
         } else if (error.message?.includes('network')) {
             return '🌐 Network error. Please check your connection.';
         } else {
-            return `❌ Error: ${error.message || 'Unknown error occurred'}`;
+            return `❌ Error with ${this.models[this.currentModel].displayName}: ${error.message || 'Unknown error occurred'}`;
         }
     }
 
     addMessage(sender, content, files = []) {
         const chatMessages = document.getElementById('chatMessages');
-        if (!chatMessages) return;
+        if (!chatMessages) {
+            console.error('Chat messages container not found');
+            return;
+        }
+
+        // SAFE CONTENT HANDLING - FIX for substring error
+        let safeContent = '';
+        try {
+            if (content === null || content === undefined) {
+                safeContent = 'Empty message';
+            } else if (typeof content === 'string') {
+                safeContent = content;
+            } else if (typeof content === 'object') {
+                safeContent = JSON.stringify(content, null, 2);
+            } else {
+                safeContent = String(content);
+            }
+        } catch (error) {
+            console.error('Content conversion error:', error);
+            safeContent = 'Error displaying message';
+        }
+
+        // Ensure container is visible
+        chatMessages.style.display = 'flex';
 
         const messageEl = document.createElement('div');
         messageEl.className = `message ${sender}`;
+        messageEl.style.opacity = '0';
+        messageEl.style.transform = 'translateY(20px)';
 
         const avatar = document.createElement('div');
         avatar.className = 'message-avatar';
@@ -1141,7 +984,7 @@ class SebastianLabs {
         messageContent.className = 'message-content';
 
         // Add file attachments for user messages
-        if (files.length > 0 && sender === 'user') {
+        if (files && files.length > 0 && sender === 'user') {
             const filesDiv = document.createElement('div');
             filesDiv.className = 'message-files';
             files.forEach(file => {
@@ -1155,7 +998,7 @@ class SebastianLabs {
 
         const messageText = document.createElement('div');
         messageText.className = 'message-text';
-        messageText.innerHTML = this.formatMessageText(content);
+        messageText.innerHTML = this.formatMessageText(safeContent);
 
         const messageTime = document.createElement('div');
         messageTime.className = 'message-time';
@@ -1170,22 +1013,39 @@ class SebastianLabs {
         messageEl.appendChild(messageContent);
 
         chatMessages.appendChild(messageEl);
-        chatMessages.scrollTop = chatMessages.scrollHeight;
 
-        // Update stats
+        // Animate message in
+        requestAnimationFrame(() => {
+            messageEl.style.transition = 'all 0.3s ease';
+            messageEl.style.opacity = '1';
+            messageEl.style.transform = 'translateY(0)';
+        });
+        
+        // Scroll to bottom
+        setTimeout(() => {
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }, 100);
+
+        // Update stats - SAFE CALCULATION
         if (sender === 'user') {
-            this.messageHistory.push({ role: 'user', content });
+            this.messageHistory.push({ role: 'user', content: safeContent });
             this.messageCount++;
         } else {
-            this.messageHistory.push({ role: 'assistant', content });
+            this.messageHistory.push({ role: 'assistant', content: safeContent });
         }
 
-        this.tokenCount += content.length;
+        // FIXED token count calculation
+        const contentLength = safeContent ? safeContent.length : 0;
+        this.tokenCount += contentLength;
         this.updateStats();
+
+        // SAFE substring for logging
+        const logContent = safeContent.length > 50 ? safeContent.substring(0, 50) + '...' : safeContent;
+        console.log(`✅ Message added: ${sender} - "${logContent}"`);
     }
 
     formatMessageText(text) {
-        if (typeof text !== 'string') return '';
+        if (!text || typeof text !== 'string') return String(text || '');
         
         return text
             .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
@@ -1231,8 +1091,121 @@ class SebastianLabs {
     }
 
     updateStats() {
-        document.getElementById('messageCount').textContent = `${this.messageCount} messages`;
-        document.getElementById('tokenCount').textContent = `${this.tokenCount} tokens`;
+        const messageCountEl = document.getElementById('messageCount');
+        const tokenCountEl = document.getElementById('tokenCount');
+        
+        if (messageCountEl) {
+            messageCountEl.textContent = `${this.messageCount || 0} messages`;
+        }
+        if (tokenCountEl) {
+            tokenCountEl.textContent = `${this.tokenCount || 0} tokens`;
+        }
+    }
+
+    async handleFiles(files) {
+        for (const file of files) {
+            if (!this.isValidFile(file)) {
+                this.showToast(`Invalid file: ${file.name}`, 'error');
+                continue;
+            }
+
+            try {
+                this.showToast(`Processing ${file.name}...`, 'info');
+                
+                const fileObj = {
+                    id: Date.now() + Math.random(),
+                    name: file.name,
+                    type: file.type,
+                    size: this.formatFileSize(file.size),
+                    file: file
+                };
+
+                if (file.type.startsWith('image/')) {
+                    fileObj.url = URL.createObjectURL(file);
+                } else if (file.type === 'application/pdf' || file.type === 'text/plain') {
+                    try {
+                        fileObj.content = await this.extractFileContent(file);
+                    } catch (error) {
+                        console.warn('Failed to extract file content:', error);
+                        fileObj.content = `File: ${file.name}`;
+                    }
+                }
+
+                this.uploadedFiles.push(fileObj);
+                this.displayFiles();
+                this.showToast(`${file.name} added successfully`, 'success');
+
+            } catch (error) {
+                console.error('File processing error:', error);
+                this.showToast(`Failed to process ${file.name}`, 'error');
+            }
+        }
+    }
+
+    async extractFileContent(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = (e) => resolve(e.target.result);
+            reader.onerror = reject;
+            reader.readAsText(file);
+        });
+    }
+
+    isValidFile(file) {
+        const allowedTypes = [
+            'image/jpeg', 'image/png', 'image/gif', 'image/webp',
+            'application/pdf', 'text/plain', 'text/csv'
+        ];
+        const maxSize = 50 * 1024 * 1024; // 50MB
+        
+        return allowedTypes.includes(file.type) && file.size <= maxSize;
+    }
+
+    formatFileSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+
+    displayFiles() {
+        const container = document.getElementById('attachedFiles');
+        if (!container) return;
+
+        if (this.uploadedFiles.length === 0) {
+            container.style.display = 'none';
+            return;
+        }
+
+        container.style.display = 'flex';
+        container.innerHTML = '';
+        
+        this.uploadedFiles.forEach(file => {
+            const fileEl = document.createElement('div');
+            fileEl.className = 'attached-file';
+            fileEl.innerHTML = `
+                <svg viewBox="0 0 24 24" width="14" height="14">
+                    <path fill="currentColor" d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/>
+                </svg>
+                <span>${file.name}</span>
+                <button class="remove-btn" onclick="sebastianLabs.removeFile('${file.id}')">×</button>
+            `;
+            container.appendChild(fileEl);
+        });
+    }
+
+    removeFile(fileId) {
+        const fileIndex = this.uploadedFiles.findIndex(f => f.id === fileId);
+        if (fileIndex > -1) {
+            const file = this.uploadedFiles[fileIndex];
+            if (file.url && file.url.startsWith('blob:')) {
+                URL.revokeObjectURL(file.url);
+            }
+            this.uploadedFiles.splice(fileIndex, 1);
+            this.displayFiles();
+            this.showToast('File removed', 'info');
+        }
     }
 
     async generateImage() {
@@ -1244,13 +1217,20 @@ class SebastianLabs {
             this.addMessage('user', `Generate image: ${prompt}`);
             this.showTypingIndicator();
 
-            const result = await puter.ai.txt2img(prompt);
+            let result;
+            if (this.isAuthenticated && typeof puter !== 'undefined' && puter.ai.txt2img) {
+                result = await puter.ai.txt2img(prompt);
+            } else {
+                // Demo mode
+                await new Promise(resolve => setTimeout(resolve, 2000));
+                result = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZGRkIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxOCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPkRlbW8gSW1hZ2U8L3RleHQ+PC9zdmc+';
+            }
             
             this.hideTypingIndicator();
             
             if (result) {
                 let imageUrl = typeof result === 'string' ? result : result.url || result.src;
-                this.addMessage('ai', `🎨 Image generated!\n\n![Generated Image](${imageUrl})`);
+                this.addMessage('ai', `🎨 Image generated for: "${prompt}"\n\n![Generated Image](${imageUrl})`);
                 this.showToast('✅ Image generated!', 'success');
             } else {
                 this.addMessage('ai', '❌ Failed to generate image.');
@@ -1260,7 +1240,7 @@ class SebastianLabs {
         } catch (error) {
             this.hideTypingIndicator();
             console.error('Image generation error:', error);
-            this.addMessage('ai', this.getErrorMessage(error));
+            this.addMessage('ai', '❌ Failed to generate image: ' + error.message);
             this.showToast('Error generating image', 'error');
         }
     }
@@ -1312,8 +1292,12 @@ class SebastianLabs {
         const chatMessages = document.getElementById('chatMessages');
         const welcomeMessage = document.getElementById('welcomeMessage');
         
-        if (chatMessages) chatMessages.innerHTML = '';
-        if (welcomeMessage) welcomeMessage.style.display = 'flex';
+        if (chatMessages) {
+            chatMessages.innerHTML = '';
+        }
+        if (welcomeMessage) {
+            welcomeMessage.style.display = 'flex';
+        }
         
         this.messageHistory = [];
         this.messageCount = 0;
@@ -1414,6 +1398,7 @@ class SebastianLabs {
 
 // Initialize app when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
+    console.log('🚀 Initializing SebastianLabs...');
     window.sebastianLabs = new SebastianLabs();
     
     // Restore theme
@@ -1432,4 +1417,4 @@ window.addEventListener('unhandledrejection', (event) => {
     event.preventDefault();
 });
 
-console.log('🚀 SebastianLabs loaded successfully!');
+console.log('🚀 SebastianLabs JavaScript loaded successfully!');

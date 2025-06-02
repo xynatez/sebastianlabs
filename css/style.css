@@ -2019,3 +2019,51 @@ body {
     -webkit-text-fill-color: transparent;
     background-clip: text;
 }
+
+/* Theme Toggle Icon Fixes - Light Theme Visibility */
+.light-theme .theme-icon-dark {
+    display: block !important;
+    opacity: 1 !important;
+    color: var(--text-primary) !important;
+}
+
+.light-theme .theme-icon-light {
+    display: none !important;
+}
+
+.dark-theme .theme-icon-light {
+    display: none !important;
+}
+
+.dark-theme .theme-icon-dark {
+    display: block !important;
+}
+
+/* Ensure theme toggle button is always visible */
+#themeToggle {
+    background: var(--bg-surface) !important;
+    border: 1px solid var(--border-primary) !important;
+}
+
+.light-theme #themeToggle {
+    background: var(--bg-surface) !important;
+    color: var(--text-primary) !important;
+    border-color: var(--border-primary) !important;
+}
+
+.light-theme #themeToggle:hover {
+    background: var(--bg-hover) !important;
+    color: var(--primary) !important;
+}
+
+/* Fix for light theme visibility */
+.light-theme .header-action-btn {
+    background: var(--bg-surface) !important;
+    color: var(--text-primary) !important;
+    border: 1px solid var(--border-primary) !important;
+}
+
+.light-theme .header-action-btn:hover {
+    background: var(--bg-hover) !important;
+    color: var(--primary) !important;
+}
