@@ -9,6 +9,7 @@ class SebastianLabs {
         this.isInitialized = false;
         this.puterUser = null;
         this.isAuthenticated = false;
+        this.isMobile = window.innerWidth <= 768;
         
         // Model configurations lengkap
         this.models = {
@@ -60,6 +61,7 @@ class SebastianLabs {
         this.startVoiceInput = this.startVoiceInput.bind(this);
         this.sendMessage = this.sendMessage.bind(this);
         this.removeFile = this.removeFile.bind(this);
+        this.handleResize = this.handleResize.bind(this);
         
         this.init();
     }
@@ -70,6 +72,7 @@ class SebastianLabs {
             await this.waitForPuter();
             this.setupEventListeners();
             this.initializeUI();
+            this.setupMobileFeatures();
             await this.testAPIConnection();
             this.hideLoading();
             this.isInitialized = true;
@@ -136,14 +139,14 @@ class SebastianLabs {
 
     setupEventListeners() {
         try {
-            // Model selection
+            // Model selection (desktop)
             document.querySelectorAll('input[name="model"]').forEach(radio => {
                 radio.addEventListener('change', (e) => {
                     this.switchModel(e.target.value);
                 });
             });
 
-            // Category toggles
+            // Category toggles (desktop)
             document.querySelectorAll('.category-header').forEach(header => {
                 header.addEventListener('click', () => {
                     const category = header.parentElement;
@@ -151,7 +154,7 @@ class SebastianLabs {
                 });
             });
 
-            // Sidebar toggle
+            // Sidebar toggle (desktop)
             const sidebarToggle = document.getElementById('sidebarToggle');
             if (sidebarToggle) {
                 sidebarToggle.addEventListener('click', () => {
@@ -162,28 +165,200 @@ class SebastianLabs {
                 });
             }
 
-            // Header buttons - Hapus settings
-            const buttons = [
-                { id: 'clearChatBtn', handler: () => this.clearChat() },
-                { id: 'exportChatBtn', handler: () => this.exportChat() },
-                { id: 'themeToggle', handler: () => this.toggleTheme() }
-            ];
+            // Header buttons
+            this.bindHeaderButtons();
 
-            buttons.forEach(({ id, handler }) => {
-                const button = document.getElementById(id);
-                if (button) {
-                    button.addEventListener('click', handler);
-                }
-            });
-
+            // File upload
             this.setupFileUpload();
+
+            // Message input
             this.setupMessageInput();
+
+            // Quick start buttons
             this.setupQuickStartButtons();
+
+            // AI tools
             this.setupAITools();
+
+            // Mobile specific
+            this.setupMobileEventListeners();
+
+            // Keyboard shortcuts
             this.setupKeyboardShortcuts();
+
+            // Resize handler
+            window.addEventListener('resize', this.handleResize);
+
         } catch (error) {
             console.error('Error setting up event listeners:', error);
         }
+    }
+
+    setupMobileEventListeners() {
+        // Mobile FAB
+        const modelSelectorFab = document.getElementById('modelSelectorFab');
+        if (modelSelectorFab) {
+            modelSelectorFab.addEventListener('click', () => {
+                this.showMobileModelSelector();
+            });
+        }
+
+        // Mobile model overlay close
+        const closeModelDrawer = document.getElementById('closeModelDrawer');
+        if (closeModelDrawer) {
+            closeModelDrawer.addEventListener('click', () => {
+                this.hideMobileModelSelector();
+            });
+        }
+
+        // Mobile overlay background close
+        const mobileModelOverlay = document.getElementById('mobileModelOverlay');
+        if (mobileModelOverlay) {
+            mobileModelOverlay.addEventListener('click', (e) => {
+                if (e.target === mobileModelOverlay) {
+                    this.hideMobileModelSelector();
+                }
+            });
+        }
+
+        // Mobile tools
+        document.getElementById('mobileFileBtn')?.addEventListener('click', () => {
+            document.getElementById('mobileFileInput')?.click();
+        });
+
+        document.getElementById('mobileImageGenBtn')?.addEventListener('click', this.generateImage);
+        document.getElementById('mobileVoiceBtn')?.addEventListener('click', this.startVoiceInput);
+
+        // Mobile file input
+        document.getElementById('mobileFileInput')?.addEventListener('change', (e) => {
+            this.handleFileUpload(Array.from(e.target.files || []));
+        });
+    }
+
+    setupMobileFeatures() {
+        if (this.isMobile) {
+            this.setupMobileModelGrid();
+            this.updateMobileFAB();
+        }
+    }
+
+    setupMobileModelGrid() {
+        const mobileModelGrid = document.getElementById('mobileModelGrid');
+        if (!mobileModelGrid) return;
+
+        mobileModelGrid.innerHTML = '';
+
+        Object.entries(this.models).forEach(([modelKey, modelData]) => {
+            const modelCard = document.createElement('div');
+            modelCard.className = 'mobile-model-card';
+            if (modelKey === this.currentModel) {
+                modelCard.classList.add('active');
+            }
+
+            modelCard.innerHTML = `
+                <div class="mobile-model-name">${this.getDisplayName(modelKey)}</div>
+                <div class="mobile-model-provider">${modelData.provider}</div>
+                <div class="mobile-model-features">
+                    ${modelData.vision ? '<span class="feature vision">Vision</span>' : ''}
+                    ${modelData.files ? '<span class="feature fast">Files</span>' : ''}
+                    ${modelData.reasoning ? '<span class="feature reasoning">Reasoning</span>' : ''}
+                </div>
+            `;
+
+            modelCard.addEventListener('click', () => {
+                this.switchModel(modelKey);
+                this.hideMobileModelSelector();
+            });
+
+            mobileModelGrid.appendChild(modelCard);
+        });
+    }
+
+    getDisplayName(modelKey) {
+        const displayNames = {
+            'gpt-4o-mini': 'GPT-4o Mini',
+            'gpt-4o': 'GPT-4o',
+            'o1': 'O1',
+            'o1-mini': 'O1 Mini',
+            'o1-pro': 'O1 Pro',
+            'o3': 'O3',
+            'o3-mini': 'O3 Mini',
+            'o4-mini': 'O4 Mini',
+            'gpt-4.1': 'GPT-4.1',
+            'gpt-4.1-mini': 'GPT-4.1 Mini',
+            'gpt-4.1-nano': 'GPT-4.1 Nano',
+            'gpt-4.5-preview': 'GPT-4.5 Preview',
+            'claude-sonnet-4': 'Claude Sonnet 4',
+            'claude-opus-4': 'Claude Opus 4',
+            'claude-3-7-sonnet': 'Claude 3.7 Sonnet',
+            'claude-3-5-sonnet': 'Claude 3.5 Sonnet',
+            'deepseek-chat': 'DeepSeek Chat',
+            'deepseek-reasoner': 'DeepSeek Reasoner',
+            'gemini-2.0-flash': 'Gemini 2.0 Flash',
+            'gemini-1.5-flash': 'Gemini 1.5 Flash',
+            'google/gemma-2-27b-it': 'Gemma 2 27B',
+            'meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo': 'Llama 3.1 8B',
+            'meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo': 'Llama 3.1 70B',
+            'meta-llama/Meta-Llama-3.1-405B-Instruct-Turbo': 'Llama 3.1 405B',
+            'mistral-large-latest': 'Mistral Large',
+            'pixtral-large-latest': 'Pixtral Large',
+            'codestral-latest': 'Codestral',
+            'grok-beta': 'Grok Beta'
+        };
+        return displayNames[modelKey] || modelKey;
+    }
+
+    showMobileModelSelector() {
+        const overlay = document.getElementById('mobileModelOverlay');
+        if (overlay) {
+            overlay.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+    }
+
+    hideMobileModelSelector() {
+        const overlay = document.getElementById('mobileModelOverlay');
+        if (overlay) {
+            overlay.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+    }
+
+    updateMobileFAB() {
+        const currentModelName = document.getElementById('currentModelName');
+        if (currentModelName) {
+            currentModelName.textContent = this.getDisplayName(this.currentModel);
+        }
+    }
+
+    handleResize() {
+        const wasMobile = this.isMobile;
+        this.isMobile = window.innerWidth <= 768;
+        
+        if (wasMobile !== this.isMobile) {
+            if (this.isMobile) {
+                this.setupMobileFeatures();
+            }
+            // Hide mobile overlay if switching to desktop
+            if (!this.isMobile) {
+                this.hideMobileModelSelector();
+            }
+        }
+    }
+
+    bindHeaderButtons() {
+        const buttons = [
+            { id: 'clearChatBtn', handler: () => this.clearChat() },
+            { id: 'exportChatBtn', handler: () => this.exportChat() },
+            { id: 'themeToggle', handler: () => this.toggleTheme() }
+        ];
+
+        buttons.forEach(({ id, handler }) => {
+            const button = document.getElementById(id);
+            if (button) {
+                button.addEventListener('click', handler);
+            }
+        });
     }
 
     setupFileUpload() {
@@ -304,6 +479,10 @@ class SebastianLabs {
         }
 
         this.updateSendButton();
+        
+        if (this.isMobile) {
+            this.setupMobileFeatures();
+        }
     }
 
     switchModel(modelName) {
@@ -312,8 +491,21 @@ class SebastianLabs {
             this.currentProvider = this.models[modelName].provider;
             this.updateModelDisplay();
             this.updateModelSupport();
+            
+            // Update desktop radio button
+            const radio = document.querySelector(`input[name="model"][value="${modelName}"]`);
+            if (radio) {
+                radio.checked = true;
+            }
+            
+            // Update mobile FAB and grid
+            if (this.isMobile) {
+                this.updateMobileFAB();
+                this.setupMobileModelGrid();
+            }
+            
             console.log(`✅ Model switched to: ${modelName} (${this.currentProvider})`);
-            this.showNotification(`Switched to ${modelName}`, 'info');
+            this.showNotification(`Switched to ${this.getDisplayName(modelName)}`, 'info');
         }
     }
 
@@ -321,7 +513,7 @@ class SebastianLabs {
         const currentModelEl = document.getElementById('currentModel');
         const currentProviderEl = document.getElementById('currentProvider');
         
-        if (currentModelEl) currentModelEl.textContent = this.currentModel;
+        if (currentModelEl) currentModelEl.textContent = this.getDisplayName(this.currentModel);
         if (currentProviderEl) currentProviderEl.textContent = this.currentProvider;
     }
 
@@ -367,7 +559,6 @@ class SebastianLabs {
             try {
                 this.showNotification(`📤 Processing ${file.name}...`, 'info');
                 
-                // Create file object with proper processing for different types
                 const fileObj = {
                     id: Date.now() + Math.random(),
                     name: file.name,
@@ -377,26 +568,20 @@ class SebastianLabs {
                     isLocal: true
                 };
 
-                // Handle different file types
                 if (file.type.startsWith('image/')) {
-                    // For images, create object URL
                     fileObj.url = URL.createObjectURL(file);
                 } else if (file.type === 'application/pdf') {
-                    // For PDFs, we'll read content and send as text
                     const content = await this.extractPDFContent(file);
                     fileObj.content = content;
                     fileObj.url = URL.createObjectURL(file);
                 } else if (file.type === 'text/plain') {
-                    // For text files, read content
                     const content = await this.readTextFile(file);
                     fileObj.content = content;
                     fileObj.url = URL.createObjectURL(file);
                 } else {
-                    // For other files, create object URL
                     fileObj.url = URL.createObjectURL(file);
                 }
 
-                // Try to upload to Puter if authenticated
                 if (this.isAuthenticated) {
                     try {
                         const uploadResult = await puter.fs.upload([file]);
@@ -426,7 +611,6 @@ class SebastianLabs {
 
     async extractPDFContent(file) {
         try {
-            // Basic PDF text extraction - in real app, use PDF.js
             const text = await this.readTextFile(file);
             return text || `PDF file: ${file.name}`;
         } catch (error) {
@@ -577,9 +761,16 @@ class SebastianLabs {
         if (!message && this.uploadedFiles.length === 0) return;
 
         try {
+            // Force hide welcome screen
             const welcomeScreen = document.getElementById('welcomeScreen');
             if (welcomeScreen) {
                 welcomeScreen.style.display = 'none';
+            }
+
+            // Show chat messages container
+            const chatMessages = document.getElementById('chatMessages');
+            if (chatMessages) {
+                chatMessages.style.display = 'flex';
             }
 
             this.addMessage('user', message, [...this.uploadedFiles]);
@@ -593,7 +784,6 @@ class SebastianLabs {
 
             this.showTypingIndicator();
 
-            // Improved AI call with better model handling
             let response = await this.callPuterAI(message, filesForMessage);
             
             this.hideTypingIndicator();
@@ -607,7 +797,6 @@ class SebastianLabs {
         }
     }
 
-    // Improved AI call method
     async callPuterAI(message, files = []) {
         try {
             const model = this.models[this.currentModel];
@@ -615,10 +804,8 @@ class SebastianLabs {
             console.log(`🤖 Using model: ${this.currentModel} from ${this.currentProvider}`);
             console.log(`📋 Model config:`, model);
 
-            // Prepare message content
             let fullMessage = message;
             
-            // Add file content to message for non-image files
             const textFiles = files.filter(f => !f.type.startsWith('image/') && f.content);
             if (textFiles.length > 0) {
                 const fileContents = textFiles.map(f => `\n\n--- Content of ${f.name} ---\n${f.content}`).join('');
@@ -627,30 +814,25 @@ class SebastianLabs {
 
             let response;
 
-            // Handle vision models with images
             if (model?.vision && files.some(f => f.type.startsWith('image/'))) {
                 const imageFiles = files.filter(f => f.type.startsWith('image/'));
                 console.log(`🖼️ Processing ${imageFiles.length} images with vision model`);
                 
                 if (imageFiles.length === 1) {
-                    // Single image
                     response = await puter.ai.chat(fullMessage, imageFiles[0].url, false, {
                         model: this.currentModel
                     });
                 } else if (imageFiles.length > 1) {
-                    // Multiple images
                     const imageUrls = imageFiles.map(f => f.url);
                     response = await puter.ai.chat(fullMessage, imageUrls, false, {
                         model: this.currentModel
                     });
                 } else {
-                    // Text only
                     response = await puter.ai.chat(fullMessage, {
                         model: this.currentModel
                     });
                 }
             } else {
-                // Text-only message
                 console.log(`💬 Processing text-only message`);
                 response = await puter.ai.chat(fullMessage, {
                     model: this.currentModel
@@ -666,7 +848,6 @@ class SebastianLabs {
         }
     }
 
-    // Improved response formatting
     formatAIResponse(response) {
         console.log('🔄 Formatting response:', response);
         
@@ -679,7 +860,6 @@ class SebastianLabs {
         } 
         
         if (response && typeof response === 'object') {
-            // Handle OpenAI format
             if (response.choices && Array.isArray(response.choices) && response.choices.length > 0) {
                 const choice = response.choices[0];
                 
@@ -696,7 +876,6 @@ class SebastianLabs {
                 }
             }
             
-            // Handle various response formats
             const possibleProps = ['message', 'text', 'content', 'response', 'output', 'result'];
             for (const prop of possibleProps) {
                 if (response[prop]) {
@@ -709,7 +888,6 @@ class SebastianLabs {
                 }
             }
             
-            // Last resort: readable JSON
             return `Response from ${this.currentModel}:\n${JSON.stringify(response, null, 2)}`;
         } 
         
@@ -908,7 +1086,9 @@ class SebastianLabs {
             recognition.maxAlternatives = 1;
             recognition.continuous = false;
 
-            const voiceBtn = document.getElementById('voiceInputBtn') || document.getElementById('voiceBtn');
+            const voiceBtn = document.getElementById('voiceInputBtn') || 
+                            document.getElementById('voiceBtn') || 
+                            document.getElementById('mobileVoiceBtn');
             if (voiceBtn) {
                 voiceBtn.style.color = 'var(--primary)';
             }
@@ -984,7 +1164,7 @@ class SebastianLabs {
             const timestamp = new Date().toISOString();
             const chatText = `SebastianLabs Chat Export\n${'='.repeat(50)}\n` +
                            `Export Date: ${new Date().toLocaleString()}\n` +
-                           `Model: ${this.currentModel} (${this.currentProvider})\n` +
+                           `Model: ${this.getDisplayName(this.currentModel)} (${this.currentProvider})\n` +
                            `Messages: ${this.messageCount} | Tokens: ${this.tokenCount}\n` +
                            `${'='.repeat(50)}\n\n` +
                            this.messageHistory.map(msg => 
