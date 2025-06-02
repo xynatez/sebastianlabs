@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Puter.js Test</title>
+</head>
+<body>
+    <h1>Puter.js Test</h1>
+    <div id="output"></div>
+    
+    <script src="https://js.puter.com/v2/"></script>
+    <script>
+        const output = document.getElementById('output');
+        
+        function log(message) {
+            output.innerHTML += message + '<br>';
+            console.log(message);
+        }
+        
+        async function testPuter() {
+            try {
+                log('Testing Puter.js...');
+                
+                // Test basic chat
+                const response = await puter.ai.chat('Hello, how are you?');
+                log('Chat response: ' + response);
+                
+                // Test image generation
+                const imageResult = await puter.ai.txt2img('A beautiful sunset');
+                log('Image generated: ' + imageResult);
+                
+            } catch (error) {
+                log('Error: ' + error.message);
+            }
+        }
+        
+        // Wait for Puter to load
+        setTimeout(testPuter, 2000);
+    </script>
+</body>
+</html>

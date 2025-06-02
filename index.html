@@ -14,113 +14,6 @@
     <meta name="theme-color" content="#000000">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    
-    <!-- CSS untuk responsive developer info -->
-    <style>
-        /* Developer info mobile - tampil di bawah welcome message pada mobile */
-        .developers-info-mobile {
-            display: none;
-            text-align: center;
-            margin-top: 2rem;
-            padding: 1rem;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .developers-info-mobile .developed-text {
-            color: rgba(255, 255, 255, 0.7);
-            font-size: 0.875rem;
-            margin-bottom: 0.5rem;
-            display: block;
-        }
-
-        .developers-info-mobile .developers-list {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.75rem;
-            flex-wrap: wrap;
-        }
-
-        .developers-info-mobile .developer {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            flex-direction: column;
-        }
-
-        .developers-info-mobile .dev-name {
-            color: #00d4ff;
-            font-weight: 600;
-            font-size: 0.875rem;
-        }
-
-        .developers-info-mobile .institution {
-            display: flex;
-            align-items: center;
-        }
-
-        .developers-info-mobile .institution-logo {
-            width: 20px;
-            height: 20px;
-            object-fit: contain;
-        }
-
-        .developers-info-mobile .separator {
-            color: rgba(255, 255, 255, 0.5);
-            font-weight: 300;
-            margin: 0 0.25rem;
-        }
-
-        /* Desktop - developer info tetap di footer */
-        .developers-info-desktop {
-            display: flex;
-        }
-
-        /* Media queries untuk responsive behavior */
-        @media screen and (max-width: 768px) {
-            /* Mobile: tampilkan di welcome message, sembunyikan di footer */
-            .developers-info-mobile {
-                display: block;
-            }
-            
-            .developers-info-desktop {
-                display: none;
-            }
-
-            /* Styling khusus mobile */
-            .developers-info-mobile .developers-list {
-                flex-direction: column;
-                gap: 1rem;
-            }
-
-            .developers-info-mobile .separator {
-                display: none;
-            }
-        }
-
-        @media screen and (min-width: 769px) {
-            /* Desktop: tetap di footer, sembunyikan di welcome */
-            .developers-info-mobile {
-                display: none;
-            }
-            
-            .developers-info-desktop {
-                display: flex;
-            }
-        }
-
-        /* Styling tambahan untuk integrasi yang mulus */
-        .welcome-content {
-            position: relative;
-        }
-
-        /* Responsive adjustments untuk welcome message */
-        @media screen and (max-width: 768px) {
-            .welcome-message {
-                padding-bottom: 1rem;
-            }
-        }
-    </style>
 </head>
 <body class="dark-theme">
     <div id="app">
@@ -439,26 +332,6 @@
                                     Creative Story
                                 </button>
                             </div>
-                            
-                            <!-- Developer info untuk mobile - muncul di bawah welcome message -->
-                            <div class="developers-info-mobile">
-                                <span class="developed-text">Developed by</span>
-                                <div class="developers-list">
-                                    <div class="developer">
-                                        <span class="dev-name">Sebastian</span>
-                                        <div class="institution">
-                                            <img src="assets/logos/mit-logo.png" alt="MIT" class="institution-logo">
-                                        </div>
-                                    </div>
-                                    <span class="separator">&</span>
-                                    <div class="developer">
-                                        <span class="dev-name">Kashiwagi</span>
-                                        <div class="institution">
-                                            <img src="assets/logos/nus-logo.png" alt="NUS" class="institution-logo">
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
                         </div>
                     </div>
 
@@ -518,15 +391,16 @@
             </main>
         </div>
 
-        <!-- Footer - Desktop version dengan developer info -->
+        <!-- Footer - Always Visible -->
         <footer class="footer">
             <div class="footer-content">
-                <div class="developers-info developers-info-desktop">
+                <div class="developers-info">
                     <span class="developed-text">Developed by</span>
                     <div class="developers-list">
                         <div class="developer">
                             <span class="dev-name">Sebastian</span>
                             <div class="institution">
+                                <!-- Ganti logo MIT dengan file lokal -->
                                 <img src="assets/logos/mit-logo.png" alt="MIT" class="institution-logo">
                             </div>
                         </div>
@@ -534,6 +408,7 @@
                         <div class="developer">
                             <span class="dev-name">Kashiwagi</span>
                             <div class="institution">
+                                <!-- Ganti logo NUS dengan file lokal -->
                                 <img src="assets/logos/nus-logo.png" alt="NUS" class="institution-logo">
                             </div>
                         </div>
