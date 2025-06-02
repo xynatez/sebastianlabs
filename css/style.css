@@ -74,7 +74,7 @@
     --header-height: 64px;
     --footer-height: 60px;
     --sidebar-width: 320px;
-    --mobile-nav-height: 64px;
+    --mobile-nav-height: 60px;
 }
 
 /* Light Theme */
@@ -626,7 +626,7 @@ body {
     display: none;
 }
 
-/* Mobile Bottom Navigation */
+/* Mobile Bottom Navigation - IMPROVED */
 .mobile-bottom-nav {
     display: none;
     position: fixed;
@@ -640,13 +640,14 @@ body {
     backdrop-filter: blur(20px);
     justify-content: space-around;
     align-items: center;
-    padding: var(--space-2);
+    padding: var(--space-2) var(--space-1);
 }
 
 .nav-item {
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: center;
     gap: var(--space-1);
     padding: var(--space-2);
     border: none;
@@ -655,18 +656,41 @@ body {
     cursor: pointer;
     transition: all var(--transition);
     border-radius: var(--border-radius);
-    min-width: 60px;
+    flex: 1;
+    min-height: 48px;
+    position: relative;
 }
 
 .nav-item:hover,
 .nav-item.active {
     color: var(--primary);
-    background: rgba(0, 212, 255, 0.1);
 }
 
+.nav-item.active::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 30px;
+    height: 3px;
+    background: var(--primary);
+    border-radius: 0 0 3px 3px;
+}
+
+.nav-item svg {
+    transition: all var(--transition);
+}
+
+.nav-item.active svg {
+    transform: scale(1.1);
+}
+
+/* Hide nav text on mobile to save space */
 .nav-item span {
     font-size: var(--font-xs);
     font-weight: 500;
+    display: none; /* HIDDEN ON MOBILE */
 }
 
 /* Main Container - Fixed Height Layout */
@@ -1171,7 +1195,7 @@ body {
     margin-top: var(--space-4);
 }
 
-/* Chat Area - Fixed Layout */
+/* Chat Area - Fixed Layout with Mobile Improvements */
 .chat-area {
     flex: 1;
     display: flex;
@@ -1371,7 +1395,7 @@ body {
     30% { transform: translateY(-10px); }
 }
 
-/* Chat Input - Always Sticky */
+/* Chat Input - FIXED FOR MOBILE */
 .chat-input {
     background: var(--bg-secondary);
     border-top: 1px solid var(--border-primary);
@@ -1424,6 +1448,11 @@ body {
     padding: var(--space-3);
     transition: all var(--transition);
     gap: var(--space-2);
+    position: relative;
+    /* MOBILE FIX */
+    -webkit-user-select: text;
+    user-select: text;
+    touch-action: manipulation;
 }
 
 .input-container:focus-within {
@@ -1456,6 +1485,7 @@ body {
     min-height: 40px;
     display: flex;
     align-items: center;
+    position: relative;
 }
 
 #messageInput {
@@ -1471,10 +1501,25 @@ body {
     max-height: 120px;
     font-family: inherit;
     overflow-y: auto;
+    /* MOBILE FIXES */
+    -webkit-user-select: text;
+    user-select: text;
+    -webkit-touch-callout: default;
+    -webkit-appearance: none;
+    appearance: none;
+    touch-action: manipulation;
+    box-sizing: border-box;
 }
 
 #messageInput::placeholder {
     color: var(--text-muted);
+}
+
+/* MOBILE INPUT FIXES */
+#messageInput:focus {
+    outline: none;
+    border: none;
+    box-shadow: none;
 }
 
 .input-actions {
@@ -1688,11 +1733,12 @@ body {
     }
 }
 
-/* Mobile Responsive */
+/* Mobile Responsive - IMPROVED */
 @media (max-width: 768px) {
     :root {
         --header-height: 56px;
         --footer-height: 50px;
+        --mobile-nav-height: 50px; /* Reduced height */
     }
 
     .mobile-menu-btn {
@@ -1792,6 +1838,8 @@ body {
 
     .input-container {
         padding: var(--space-2);
+        /* Additional mobile fixes */
+        -webkit-overflow-scrolling: touch;
     }
 
     .input-action-btn,
@@ -1803,6 +1851,11 @@ body {
     #messageInput {
         font-size: var(--font-sm);
         max-height: 80px;
+        /* Mobile specific fixes */
+        -webkit-transform: translateZ(0);
+        transform: translateZ(0);
+        -webkit-backface-visibility: hidden;
+        backface-visibility: hidden;
     }
 
     .input-status {
@@ -1846,6 +1899,27 @@ body {
     .toast {
         max-width: none;
     }
+
+    /* MOBILE NAV IMPROVEMENTS */
+    .nav-item {
+        padding: var(--space-1);
+        min-height: 40px;
+    }
+
+    .nav-item svg {
+        width: 22px;
+        height: 22px;
+    }
+
+    /* ENSURE BOTTOM NAV DOESN'T INTERFERE */
+    .chat-area {
+        padding-bottom: 0;
+    }
+
+    /* MOBILE INPUT SAFE AREA */
+    .chat-input {
+        padding-bottom: max(var(--space-3), env(safe-area-inset-bottom));
+    }
 }
 
 @media (max-width: 480px) {
@@ -1880,6 +1954,45 @@ body {
 
     .developers-list {
         gap: var(--space-1);
+    }
+
+    .nav-item svg {
+        width: 20px;
+        height: 20px;
+    }
+}
+
+/* Special fixes for mobile input issues */
+@media (max-width: 768px) {
+    /* Prevent zoom on input focus */
+    #messageInput,
+    input,
+    textarea {
+        font-size: 16px !important;
+    }
+
+    /* Ensure input is always accessible */
+    .input-container {
+        position: relative;
+        z-index: 1000;
+    }
+
+    /* Fix for keyboard overlay */
+    .chat-input {
+        position: -webkit-sticky;
+        position: sticky;
+        bottom: 0;
+        z-index: 1000;
+    }
+
+    /* Prevent input from being covered */
+    .message-input-wrapper {
+        min-height: 44px;
+    }
+
+    #messageInput {
+        min-height: 22px;
+        padding: 11px 0;
     }
 }
 
