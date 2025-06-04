@@ -1,6 +1,6 @@
 class SebastianLabs {
     constructor() {
-        this.currentModel = 'gpt-4o-mini';
+        this.currentModel = 'gpt-4.1'; // Changed default to GPT-4.1
         this.currentProvider = 'OpenAI';
         this.uploadedFiles = [];
         this.messageHistory = [];
@@ -85,7 +85,7 @@ class SebastianLabs {
                 vision: true, 
                 files: true, 
                 reasoning: false,
-                features: ['vision', 'premium']
+                features: ['vision', 'premium', 'default']
             },
             'gpt-4.1-mini': { 
                 provider: 'OpenAI', 
@@ -164,8 +164,40 @@ class SebastianLabs {
                 features: ['reasoning']
             },
             
-            // Google Models
-            'gemini-2.0-flash': { 
+            // Google Gemini Models (Updated with all available models)
+            'google/gemini-2.5-flash-preview': { 
+                provider: 'Google', 
+                displayName: 'Gemini 2.5 Flash Preview',
+                vision: true, 
+                files: true, 
+                reasoning: false,
+                features: ['vision', 'fast', 'preview']
+            },
+            'google/gemini-2.5-flash-preview:thinking': { 
+                provider: 'Google', 
+                displayName: 'Gemini 2.5 Flash Preview (Thinking)',
+                vision: true, 
+                files: true, 
+                reasoning: true,
+                features: ['vision', 'fast', 'reasoning', 'preview']
+            },
+            'google/gemini-2.5-pro-exp-03-25:free': { 
+                provider: 'Google', 
+                displayName: 'Gemini 2.5 Pro Exp (Free)',
+                vision: true, 
+                files: true, 
+                reasoning: false,
+                features: ['vision', 'premium', 'experimental']
+            },
+            'google/gemini-2.0-flash-lite-001': { 
+                provider: 'Google', 
+                displayName: 'Gemini 2.0 Flash Lite',
+                vision: true, 
+                files: true, 
+                reasoning: false,
+                features: ['vision', 'fast', 'lite']
+            },
+            'google/gemini-2.0-flash-001': { 
                 provider: 'Google', 
                 displayName: 'Gemini 2.0 Flash',
                 vision: true, 
@@ -173,9 +205,91 @@ class SebastianLabs {
                 reasoning: false,
                 features: ['vision', 'fast']
             },
+            'google/gemini-2.0-pro-exp-02-05:free': { 
+                provider: 'Google', 
+                displayName: 'Gemini 2.0 Pro Exp (Free)',
+                vision: true, 
+                files: true, 
+                reasoning: false,
+                features: ['vision', 'premium', 'experimental']
+            },
+            'google/gemini-2.0-flash-thinking-exp:free': { 
+                provider: 'Google', 
+                displayName: 'Gemini 2.0 Flash Thinking Exp',
+                vision: true, 
+                files: true, 
+                reasoning: true,
+                features: ['vision', 'fast', 'reasoning', 'experimental']
+            },
+            'google/gemini-2.0-flash-thinking-exp-1219:free': { 
+                provider: 'Google', 
+                displayName: 'Gemini 2.0 Flash Thinking Exp 1219',
+                vision: true, 
+                files: true, 
+                reasoning: true,
+                features: ['vision', 'fast', 'reasoning', 'experimental']
+            },
+            'google/gemini-2.0-flash-exp:free': { 
+                provider: 'Google', 
+                displayName: 'Gemini 2.0 Flash Exp',
+                vision: true, 
+                files: true, 
+                reasoning: false,
+                features: ['vision', 'fast', 'experimental']
+            },
+            'google/gemini-flash-1.5-8b': { 
+                provider: 'Google', 
+                displayName: 'Gemini Flash 1.5 8B',
+                vision: true, 
+                files: true, 
+                reasoning: false,
+                features: ['vision', 'fast']
+            },
+            'google/gemini-flash-1.5-8b-exp': { 
+                provider: 'Google', 
+                displayName: 'Gemini Flash 1.5 8B Exp',
+                vision: true, 
+                files: true, 
+                reasoning: false,
+                features: ['vision', 'fast', 'experimental']
+            },
+            'google/gemini-flash-1.5': { 
+                provider: 'Google', 
+                displayName: 'Gemini Flash 1.5',
+                vision: true, 
+                files: true, 
+                reasoning: false,
+                features: ['vision', 'fast']
+            },
+            'google/gemini-pro-1.5': { 
+                provider: 'Google', 
+                displayName: 'Gemini Pro 1.5',
+                vision: true, 
+                files: true, 
+                reasoning: false,
+                features: ['vision', 'premium']
+            },
+            'google/gemini-pro': { 
+                provider: 'Google', 
+                displayName: 'Gemini Pro',
+                vision: false, 
+                files: false, 
+                reasoning: false,
+                features: ['premium']
+            },
+            
+            // Legacy Google Models (keeping for compatibility)
+            'gemini-2.0-flash': { 
+                provider: 'Google', 
+                displayName: 'Gemini 2.0 Flash (Legacy)',
+                vision: true, 
+                files: true, 
+                reasoning: false,
+                features: ['vision', 'fast']
+            },
             'gemini-1.5-flash': { 
                 provider: 'Google', 
-                displayName: 'Gemini 1.5 Flash',
+                displayName: 'Gemini 1.5 Flash (Legacy)',
                 vision: true, 
                 files: true, 
                 reasoning: false,
@@ -190,10 +304,145 @@ class SebastianLabs {
                 features: ['fast']
             },
             
-            // Meta Models
+            // Meta Llama Models (Updated with all available models)
+            // Llama 4 Models
+            'meta-llama/llama-4-maverick': { 
+                provider: 'Meta', 
+                displayName: 'Llama 4 Maverick',
+                vision: false, 
+                files: false, 
+                reasoning: false,
+                features: ['premium', 'latest']
+            },
+            'meta-llama/llama-4-scout': { 
+                provider: 'Meta', 
+                displayName: 'Llama 4 Scout',
+                vision: false, 
+                files: false, 
+                reasoning: false,
+                features: ['premium', 'latest']
+            },
+            
+            // Llama 3.3 Models
+            'meta-llama/llama-3.3-70b-instruct': { 
+                provider: 'Meta', 
+                displayName: 'Llama 3.3 70B Instruct',
+                vision: false, 
+                files: false, 
+                reasoning: false,
+                features: ['premium', 'recommended']
+            },
+            
+            // Llama 3.2 Models
+            'meta-llama/llama-3.2-3b-instruct': { 
+                provider: 'Meta', 
+                displayName: 'Llama 3.2 3B Instruct',
+                vision: false, 
+                files: false, 
+                reasoning: false,
+                features: ['fast']
+            },
+            'meta-llama/llama-3.2-1b-instruct': { 
+                provider: 'Meta', 
+                displayName: 'Llama 3.2 1B Instruct',
+                vision: false, 
+                files: false, 
+                reasoning: false,
+                features: ['fast', 'lite']
+            },
+            
+            // Llama 3.1 Models
+            'meta-llama/llama-3.1-405b': { 
+                provider: 'Meta', 
+                displayName: 'Llama 3.1 405B',
+                vision: false, 
+                files: false, 
+                reasoning: false,
+                features: ['premium', 'large']
+            },
+            'meta-llama/llama-3.1-8b-instruct': { 
+                provider: 'Meta', 
+                displayName: 'Llama 3.1 8B Instruct',
+                vision: false, 
+                files: false, 
+                reasoning: false,
+                features: ['fast', 'recommended']
+            },
+            'meta-llama/llama-3.1-405b-instruct': { 
+                provider: 'Meta', 
+                displayName: 'Llama 3.1 405B Instruct',
+                vision: false, 
+                files: false, 
+                reasoning: false,
+                features: ['premium', 'large']
+            },
+            'meta-llama/llama-3.1-70b-instruct': { 
+                provider: 'Meta', 
+                displayName: 'Llama 3.1 70B Instruct',
+                vision: false, 
+                files: false, 
+                reasoning: false,
+                features: ['premium']
+            },
+            
+            // Llama 3 Models
+            'meta-llama/llama-3-8b-instruct': { 
+                provider: 'Meta', 
+                displayName: 'Llama 3 8B Instruct',
+                vision: false, 
+                files: false, 
+                reasoning: false,
+                features: ['fast']
+            },
+            'meta-llama/llama-3-70b-instruct': { 
+                provider: 'Meta', 
+                displayName: 'Llama 3 70B Instruct',
+                vision: false, 
+                files: false, 
+                reasoning: false,
+                features: ['premium']
+            },
+            
+            // Llama 2 Models
+            'meta-llama/llama-2-70b-chat': { 
+                provider: 'Meta', 
+                displayName: 'Llama 2 70B Chat',
+                vision: false, 
+                files: false, 
+                reasoning: false,
+                features: ['premium']
+            },
+            'meta-llama/llama-2-13b-chat': { 
+                provider: 'Meta', 
+                displayName: 'Llama 2 13B Chat',
+                vision: false, 
+                files: false, 
+                reasoning: false,
+                features: ['fast']
+            },
+            
+            // Llama Guard Models
+            'meta-llama/llama-guard-3-8b': { 
+                provider: 'Meta', 
+                displayName: 'Llama Guard 3 8B',
+                vision: false, 
+                files: false, 
+                reasoning: false,
+                features: ['moderation', 'safety']
+            },
+            'meta-llama/llama-guard-2-8b': { 
+                provider: 'Meta', 
+                displayName: 'Llama Guard 2 8B',
+                vision: false, 
+                files: false, 
+                reasoning: false,
+                features: ['moderation', 'safety']
+            },
+            
+            // Legacy Meta Models (keeping for compatibility)
             'meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo': { 
                 provider: 'Meta', 
-                displayName: 'Llama 3.1 8B',
+                displayName: 'Llama 3.1 8B (Legacy)',
                 vision: false, 
                 files: false, 
                 reasoning: false,
@@ -201,7 +450,7 @@ class SebastianLabs {
             },
             'meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo': { 
                 provider: 'Meta', 
-                displayName: 'Llama 3.1 70B',
+                displayName: 'Llama 3.1 70B (Legacy)',
                 vision: false, 
                 files: false, 
                 reasoning: false,
@@ -209,7 +458,7 @@ class SebastianLabs {
             },
             'meta-llama/Meta-Llama-3.1-405B-Instruct-Turbo': { 
                 provider: 'Meta', 
-                displayName: 'Llama 3.1 405B',
+                displayName: 'Llama 3.1 405B (Legacy)',
                 vision: false, 
                 files: false, 
                 reasoning: false,
@@ -239,7 +488,7 @@ class SebastianLabs {
                 vision: false, 
                 files: false, 
                 reasoning: false,
-                features: ['premium']
+                features: ['premium', 'coding']
             },
             
             // xAI
@@ -260,18 +509,11 @@ class SebastianLabs {
         try {
             this.showLoading('Initializing SebastianLabs...');
             
-            // Wait for Puter.js to load
             await this.waitForPuter();
-            
-            // Setup UI and event listeners
             this.setupEventListeners();
             this.setupUI();
             this.setupResponsive();
-            
-            // Ensure chat container is visible
             this.initializeChatArea();
-            
-            // Test API connection
             await this.testAPIConnection();
             
             this.hideLoading();
@@ -286,7 +528,6 @@ class SebastianLabs {
     }
 
     initializeChatArea() {
-        // Ensure chat messages container exists and is visible
         const chatContainer = document.getElementById('chatMessages');
         const welcomeMessage = document.getElementById('welcomeMessage');
         
@@ -295,12 +536,10 @@ class SebastianLabs {
             return;
         }
 
-        // Make sure chat messages container is visible
         chatContainer.style.display = 'flex';
         chatContainer.style.flexDirection = 'column';
         chatContainer.style.gap = 'var(--space-4)';
         
-        // Show welcome message initially
         if (welcomeMessage) {
             welcomeMessage.style.display = 'flex';
         }
@@ -361,12 +600,10 @@ class SebastianLabs {
     }
 
     setupEventListeners() {
-        // Header model selector (clickable)
         document.getElementById('currentModelDisplay')?.addEventListener('click', () => {
             this.showModelSelector();
         });
 
-        // Modal controls
         document.getElementById('modalClose')?.addEventListener('click', () => {
             this.hideModelSelector();
         });
@@ -375,12 +612,10 @@ class SebastianLabs {
             this.hideModelSelector();
         });
 
-        // Theme toggle
         document.getElementById('themeToggle')?.addEventListener('click', () => {
             this.toggleTheme();
         });
 
-        // Header actions
         document.getElementById('clearChatBtn')?.addEventListener('click', () => {
             this.clearChat();
         });
@@ -389,7 +624,6 @@ class SebastianLabs {
             this.exportChat();
         });
 
-        // Mobile navigation
         document.querySelectorAll('.nav-item').forEach(item => {
             item.addEventListener('click', () => {
                 const tab = item.dataset.tab;
@@ -397,24 +631,15 @@ class SebastianLabs {
             });
         });
 
-        // File upload events
         this.setupFileUpload();
-
-        // Message input events
         this.setupMessageInput();
-
-        // AI tools events
         this.setupAITools();
-
-        // Quick actions
         this.setupQuickActions();
 
-        // Window resize
         window.addEventListener('resize', () => {
             this.handleResize();
         });
 
-        // Keyboard shortcuts
         this.setupKeyboardShortcuts();
     }
 
@@ -493,13 +718,11 @@ class SebastianLabs {
     }
 
     populateModels() {
-        // Desktop model categories
         const modelCategories = document.getElementById('modelCategories');
         if (modelCategories) {
             this.populateDesktopModels(modelCategories);
         }
 
-        // Mobile model grid
         const mobileModelGrid = document.getElementById('mobileModelGrid');
         if (mobileModelGrid) {
             this.populateMobileModels(mobileModelGrid);
@@ -543,13 +766,11 @@ class SebastianLabs {
                 </div>
             `;
 
-            // Add category toggle
             const header = categoryDiv.querySelector('.category-header');
             header.addEventListener('click', () => {
                 categoryDiv.classList.toggle('expanded');
             });
 
-            // Add model selection
             categoryDiv.querySelectorAll('.model-item').forEach(item => {
                 item.addEventListener('click', () => {
                     const modelKey = item.dataset.model;
@@ -617,12 +838,10 @@ class SebastianLabs {
     switchMobileTab(tab) {
         this.currentMobileTab = tab;
         
-        // Update navigation
         document.querySelectorAll('.nav-item').forEach(item => {
             item.classList.toggle('active', item.dataset.tab === tab);
         });
 
-        // Show/hide panels
         document.querySelectorAll('.mobile-panel').forEach(panel => {
             panel.classList.remove('active');
         });
@@ -652,7 +871,6 @@ class SebastianLabs {
     updateModelDisplay() {
         const model = this.models[this.currentModel];
         
-        // Update header model info
         const currentModelName = document.getElementById('currentModelName');
         const currentModelProvider = document.getElementById('currentModelProvider');
         
@@ -681,17 +899,14 @@ class SebastianLabs {
     }
 
     updateModelSelections() {
-        // Update desktop selections
         document.querySelectorAll('.model-item').forEach(item => {
             item.classList.toggle('active', item.dataset.model === this.currentModel);
         });
 
-        // Update mobile selections
         document.querySelectorAll('.mobile-model-card').forEach(card => {
             card.classList.toggle('active', card.dataset.model === this.currentModel);
         });
 
-        // Update modal selections
         document.querySelectorAll('.modal-model-card').forEach(card => {
             card.classList.toggle('active', card.dataset.model === this.currentModel);
         });
@@ -704,23 +919,19 @@ class SebastianLabs {
         const mobileFileInput = document.getElementById('mobileFileInput');
         const attachBtn = document.getElementById('attachFileBtn');
 
-        // Desktop upload
         if (desktopUpload && fileInput) {
             desktopUpload.addEventListener('click', () => fileInput.click());
             this.setupDragDrop(desktopUpload, fileInput);
         }
 
-        // Mobile upload
         if (mobileUpload && mobileFileInput) {
             mobileUpload.addEventListener('click', () => mobileFileInput.click());
         }
 
-        // Attach button
         if (attachBtn && fileInput) {
             attachBtn.addEventListener('click', () => fileInput.click());
         }
 
-        // File input handlers
         fileInput?.addEventListener('change', (e) => {
             this.handleFiles(Array.from(e.target.files || []));
         });
@@ -765,7 +976,6 @@ class SebastianLabs {
                 }
             });
 
-            // Focus on input when clicked anywhere in chat area
             messageInput.addEventListener('click', () => {
                 messageInput.focus();
             });
@@ -777,7 +987,6 @@ class SebastianLabs {
     }
 
     setupAITools() {
-        // Desktop tools
         document.getElementById('imageGenTool')?.addEventListener('click', () => {
             this.generateImage();
         });
@@ -790,7 +999,6 @@ class SebastianLabs {
             this.startVoiceInput();
         });
 
-        // Mobile tools
         document.getElementById('mobileImageGen')?.addEventListener('click', () => {
             this.generateImage();
         });
@@ -850,7 +1058,6 @@ class SebastianLabs {
                     file: file
                 };
 
-                // Process different file types
                 if (file.type.startsWith('image/')) {
                     fileObj.url = URL.createObjectURL(file);
                 } else if (file.type === 'application/pdf' || file.type === 'text/plain') {
@@ -1034,7 +1241,6 @@ class SebastianLabs {
         if (!message && this.uploadedFiles.length === 0) return;
 
         try {
-            // Force hide welcome message and show chat messages
             const welcomeMessage = document.getElementById('welcomeMessage');
             const chatMessages = document.getElementById('chatMessages');
             
@@ -1046,10 +1252,8 @@ class SebastianLabs {
                 chatMessages.style.display = 'flex';
             }
 
-            // Add user message
             this.addMessage('user', message, [...this.uploadedFiles]);
 
-            // Clear input
             messageInput.value = '';
             this.autoResizeTextarea();
             const filesForMessage = [...this.uploadedFiles];
@@ -1057,10 +1261,8 @@ class SebastianLabs {
             this.displayFiles();
             this.updateSendButton();
 
-            // Show typing indicator
             this.showTypingIndicator();
 
-            // Send to AI
             const response = await this.callAI(message, filesForMessage);
             
             this.hideTypingIndicator();
@@ -1079,10 +1281,8 @@ class SebastianLabs {
             const model = this.models[this.currentModel];
             console.log(`🤖 Using ${model.displayName}`);
 
-            // Prepare message
             let fullMessage = message;
             
-            // Add file content for non-image files
             const textFiles = files.filter(f => !f.type.startsWith('image/') && f.content);
             if (textFiles.length > 0) {
                 const fileContents = textFiles.map(f => `\n\n--- ${f.name} ---\n${f.content}`).join('');
@@ -1091,28 +1291,56 @@ class SebastianLabs {
 
             let response;
 
-            // Handle vision models with images
-            if (model.vision && files.some(f => f.type.startsWith('image/'))) {
-                const imageFiles = files.filter(f => f.type.startsWith('image/'));
-                
-                if (imageFiles.length === 1) {
-                    response = await puter.ai.chat(fullMessage, imageFiles[0].url, false, {
-                        model: this.currentModel
-                    });
-                } else if (imageFiles.length > 1) {
-                    const imageUrls = imageFiles.map(f => f.url);
-                    response = await puter.ai.chat(fullMessage, imageUrls, false, {
-                        model: this.currentModel
-                    });
+            // Enhanced error handling for specific models with fallback
+            try {
+                if (model.vision && files.some(f => f.type.startsWith('image/'))) {
+                    const imageFiles = files.filter(f => f.type.startsWith('image/'));
+                    
+                    if (imageFiles.length === 1) {
+                        response = await puter.ai.chat(fullMessage, imageFiles[0].url, false, {
+                            model: this.currentModel 
+                        });
+                    } else if (imageFiles.length > 1) {
+                        const imageUrls = imageFiles.map(f => f.url);
+                        response = await puter.ai.chat(fullMessage, imageUrls, false, {
+                            model: this.currentModel
+                        });
+                    } else {
+                        response = await puter.ai.chat(fullMessage, {
+                            model: this.currentModel
+                        });
+                    }
                 } else {
                     response = await puter.ai.chat(fullMessage, {
                         model: this.currentModel
                     });
                 }
-            } else {
-                // Text-only
+            } catch (modelError) {
+                console.error(`Model ${this.currentModel} error:`, modelError);
+                
+                // Enhanced fallback mechanism for problematic models
+                let fallbackModel = null;
+                
+                if (this.currentModel.includes('meta-llama/llama-3.1-405b') || 
+                    this.currentModel.includes('meta-llama/llama-3.1-70b') ||
+                    this.currentModel.includes('meta-llama/llama-4') ||
+                    this.currentModel.includes('meta-llama/llama-3.3')) {
+                    fallbackModel = 'meta-llama/llama-3.1-8b-instruct';
+                } else if (this.currentModel.includes('meta-llama/')) {
+                    fallbackModel = 'meta-llama/llama-3.1-8b-instruct';
+                } else if (this.currentModel.includes('google/gemini-2.5')) {
+                    fallbackModel = 'google/gemini-2.0-flash-001';
+                } else if (this.currentModel.includes('google/')) {
+                    fallbackModel = 'google/gemini-flash-1.5';
+                } else {
+                    fallbackModel = 'gpt-4.1'; // Default fallback
+                }
+                
+                console.log(`Falling back to ${fallbackModel}...`);
+                this.showToast(`Model error, switching to ${this.models[fallbackModel]?.displayName || fallbackModel}`, 'warning');
+                
                 response = await puter.ai.chat(fullMessage, {
-                    model: this.currentModel
+                    model: fallbackModel
                 });
             }
 
@@ -1125,30 +1353,53 @@ class SebastianLabs {
     }
 
     formatResponse(response) {
+        console.log('Raw AI response:', response);
+
         if (typeof response === 'string') {
+            console.log('Response is a string:', response);
             return response;
         }
         
         if (response && typeof response === 'object') {
-            // Handle different response formats
             if (response.choices && response.choices[0]) {
                 const choice = response.choices[0];
                 if (choice.message && choice.message.content) {
+                    console.log('Response from choices[0].message.content:', choice.message.content);
                     return choice.message.content;
                 }
                 if (choice.text) {
+                    console.log('Response from choices[0].text:', choice.text);
                     return choice.text;
                 }
             }
             
-            // Handle direct properties
-            if (response.message) return response.message;
-            if (response.text) return response.text;
-            if (response.content) return response.content;
+            if (response.message && typeof response.message === 'object') {
+                if (response.message.content) {
+                    console.log('Response from response.message.content:', response.message.content);
+                    return response.message.content;
+                }
+            }
             
-            return JSON.stringify(response, null, 2);
+            if (response.content) {
+                console.log('Response from response.content:', response.content);
+                return response.content;
+            }
+            
+            if (response.message && typeof response.message === 'string') {
+                console.log('Response from response.message (string):', response.message);
+                return response.message;
+            }
+            if (response.text) {
+                console.log('Response from response.text:', response.text);
+                return response.text;
+            }
+            
+            const jsonString = JSON.stringify(response, null, 2);
+            console.log('Response is a complex object, stringifying:', jsonString);
+            return jsonString;
         }
         
+        console.log('No response received, returning default message.');
         return 'No response received';
     }
 
@@ -1170,8 +1421,7 @@ class SebastianLabs {
             console.error('Chat messages container not found');
             return;
         }
-
-        // Ensure chat messages container is visible
+        
         chatMessages.style.display = 'flex';
 
         const messageEl = document.createElement('div');
@@ -1186,7 +1436,6 @@ class SebastianLabs {
         const messageContent = document.createElement('div');
         messageContent.className = 'message-content';
 
-        // Add file attachments for user messages
         if (files.length > 0 && sender === 'user') {
             const filesDiv = document.createElement('div');
             filesDiv.className = 'message-files';
@@ -1201,7 +1450,22 @@ class SebastianLabs {
 
         const messageText = document.createElement('div');
         messageText.className = 'message-text';
-        messageText.innerHTML = this.formatMessageText(content);
+        
+        let textContent = content;
+        if (typeof content === 'object' && content !== null) {
+            if (content.content) {
+                textContent = content.content;
+            } else if (content.message && content.message.content) {
+                textContent = content.message.content;
+            } else if (content.text) {
+                textContent = content.text;
+            } else {
+                textContent = JSON.stringify(content);
+            }
+        }
+        
+        console.log('Final text content:', textContent);
+        messageText.innerHTML = this.formatMessageText(textContent);
 
         const messageTime = document.createElement('div');
         messageTime.className = 'message-time';
@@ -1215,36 +1479,46 @@ class SebastianLabs {
         messageEl.appendChild(avatar);
         messageEl.appendChild(messageContent);
 
+        console.log('Adding message:', sender, textContent, messageEl);
+        console.log('Chat messages element:', chatMessages);
+
         chatMessages.appendChild(messageEl);
-        
-        // Smooth scroll to bottom
+
+        console.log('Chat messages innerHTML:', chatMessages.innerHTML);
+
         requestAnimationFrame(() => {
             chatMessages.scrollTop = chatMessages.scrollHeight;
         });
 
-        // Update stats
         if (sender === 'user') {
-            this.messageHistory.push({ role: 'user', content });
+            this.messageHistory.push({ role: 'user', content: textContent });
             this.messageCount++;
         } else {
-            this.messageHistory.push({ role: 'assistant', content });
+            this.messageHistory.push({ role: 'assistant', content: textContent });
         }
 
-        this.tokenCount += content.length;
+        this.tokenCount += (textContent && typeof textContent === 'string') ? textContent.length : 0;
         this.updateStats();
 
         console.log(`✅ Message added: ${sender}`);
     }
 
     formatMessageText(text) {
-        if (typeof text !== 'string') return '';
+        console.log('Formatting text:', text);
+        if (typeof text !== 'string') {
+            console.log('Text is not a string, converting:', text);
+            text = String(text);
+        }
         
-        return text
+        const formattedText = text
             .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
             .replace(/\*(.*?)\*/g, '<em>$1</em>')
             .replace(/`(.*?)`/g, '<code>$1</code>')
             .replace(/\n/g, '<br>')
             .replace(/!\[(.*?)\]\((.*?)\)/g, '<img src="$2" alt="$1" style="max-width: 100%; border-radius: 12px; margin: 8px 0;" loading="lazy">');
+
+        console.log('Formatted text result:', formattedText);
+        return formattedText;
     }
 
     showTypingIndicator() {
@@ -1252,7 +1526,6 @@ class SebastianLabs {
         if (!chatMessages) return;
 
         this.hideTypingIndicator();
-
         const typingEl = document.createElement('div');
         typingEl.className = 'message ai';
         typingEl.id = 'typing-indicator';
@@ -1369,7 +1642,6 @@ class SebastianLabs {
         
         if (chatMessages) {
             chatMessages.innerHTML = '';
-            chatMessages.style.display = 'none';
         }
         if (welcomeMessage) {
             welcomeMessage.style.display = 'flex';
